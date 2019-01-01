@@ -59,7 +59,7 @@ Examples:
 ```php
 wp_enqueue_script( 'script-async-example', get_template_directory_uri() . '/assets/js/script.js#async' );
 wp_enqueue_script( 'script-defer-example', get_template_directory_uri() . '/assets/js/script.js#defer' );
-wp_enqueue_script( 'script-custom-attributes', 'https://cdn.ampproject.org/v0/amp-audio-0.1.js?custom_attribute[]=custom-element|amp-audio#asyc' );
+wp_enqueue_script( 'script-custom-attributes', 'https://cdn.ampproject.org/v0/amp-audio-0.1.js?custom_attribute[]=custom-element|amp-audio#async' );
 ```
 
 Result:
