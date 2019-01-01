@@ -67,7 +67,7 @@ Result:
 ```html
 <script async="async" src="https://example.com/wp-content/themes/my-theme/assets/js/script.js?ver=5.0.0"></script>
 <script defer="defer" src="https://example.com/wp-content/themes/my-theme/assets/js/script.js?ver=5.0.0"></script>
-<script async="async" custom-element="amp-audio" src="https://cdn.ampproject.org/v0/amp-audio-0.1.js"></script>
+<script async="async" custom-element="amp-audio" src="https://cdn.ampproject.org/v0/amp-audio-0.1.js?ver=5.0.0"></script>
 ```
 
 ### Disable Emojis
