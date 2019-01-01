@@ -36,16 +36,16 @@ class CommonToolkit {
             if( !getenv( 'WP_ENV' ) ) putenv( 'WP_ENV=' . self::$env );
 
             // Disable emoji support
-            if( defined( 'CTK_DISABLE_EMOJI' ) && CTK_DISABLE_EMOJI ) add_action( 'init', array( __CLASS__, 'disable_emojicons' ) );
+            if( defined( 'CTK_CONFIG' ) && isset( CTK_CONFIG['disable_emoji'] ) && CTK_CONFIG['disable_emoji'] ) add_action( 'init', array( __CLASS__, 'disable_emojicons' ) );
 
             // Change admin bar color
-            if( defined( 'CTK_ADMIN_BAR_COLOR' ) && CTK_ADMIN_BAR_COLOR ) {
+            if( defined( 'CTK_CONFIG' ) && isset( CTK_CONFIG['admin_bar_color'] ) && CTK_CONFIG['admin_bar_color'] ) {
                 add_action( 'wp_head', array( __CLASS__, 'change_admin_bar_color' ) );
                 add_action( 'admin_head', array( __CLASS__, 'change_admin_bar_color' ) );
             }  
 
             // Defer/Async Scripts
-            if( !defined( 'CTK_DISABLE_SCRIPT_ATTRIBUTES' ) || !CTK_DISABLE_SCRIPT_ATTRIBUTES ) {
+            if( !defined( 'CTK_CONFIG' ) || !isset( CTK_CONFIG['disable_script_attributes'] ) || !CTK_CONFIG['disable_script_attributes'] ) {
                 add_filter( 'script_loader_tag', array( __CLASS__, 'defer_async_scripts' ), 10, 3 );
             }
             
@@ -57,7 +57,7 @@ class CommonToolkit {
 
     /*
      * Remove Emoji code in page header.
-     *    Usage: define( 'CTK_DISABLE_EMOJI', true );
+     *    Usage: define( 'CTK_CONFIG', [ 'disable_emoji' => true ] );
      * 
      * @since 1.0.0
      */
@@ -79,13 +79,13 @@ class CommonToolkit {
 
     /*
      * Set a different admin bar color color. Useful for differentiating among environnments.
-     *    Usage: define( 'CTK_ADMIN_BAR_COLOR', '#336699' );
+     *    Usage: define( 'CTK_CONFIG', [ 'admin_bar_color' => '#336699' ] );
      * 
      * @since 1.0.0
      */
     public function change_admin_bar_color() {
 
-        printf( '<style type="text/css">#wpadminbar { background: %s; ?> !important; }</style>', CTK_ADMIN_BAR_COLOR );
+        printf( '<style type="text/css">#wpadminbar { background: %s; ?> !important; }</style>', CTK_CONFIG['admin_bar_color'] );
 
     }
 
