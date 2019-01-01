@@ -14,7 +14,7 @@ class CommonToolkit {
 
     private static $instance;
     private static $version = '1.0.0';
-    private static $env;
+    protected static $config;
     
     public static function init() {
 
@@ -25,34 +25,54 @@ class CommonToolkit {
             // Define version constant
             if ( !defined( __CLASS__ . '\VERSION' ) ) define( __CLASS__ . '\VERSION', self::$version );
 
-            // Set environment
-            if( defined( 'WP_ENV' ) && WP_ENV ) {
-                self::$env = strtolower( WP_ENV );
-            } else {
-                self::$env = 'production';
-            }
-
+            // Set configuration
+            self::$config = self::set_default_atts( [
+                'environment' => defined( 'WP_ENV' ) ? WP_ENV : 'production',
+                'disable_emojis' => false,
+                'admin_bar_color' => null,
+                'disable_script_attributes' => false
+            ], defined( 'CTK_CONFIG' ) && is_array( CTK_CONFIG ) ? CTK_CONFIG : [] );
+            
             // Define environment variable
-            if( !getenv( 'WP_ENV' ) ) putenv( 'WP_ENV=' . self::$env );
+            putenv( 'WP_ENV=' . self::get_config( 'environment' ) );
 
             // Disable emoji support
-            if( defined( 'CTK_CONFIG' ) && isset( CTK_CONFIG['disable_emojis'] ) && CTK_CONFIG['disable_emojis'] ) add_action( 'init', array( __CLASS__, 'disable_emojis' ) );
+            if( self::get_config( 'disable_emojis' ) ) add_action( 'init', array( __CLASS__, 'disable_emojis' ) );
 
             // Change admin bar color
-            if( defined( 'CTK_CONFIG' ) && isset( CTK_CONFIG['admin_bar_color'] ) && CTK_CONFIG['admin_bar_color'] ) {
+            if( self::get_config( 'admin_bar_color' ) ) {
                 add_action( 'wp_head', array( __CLASS__, 'change_admin_bar_color' ) );
                 add_action( 'admin_head', array( __CLASS__, 'change_admin_bar_color' ) );
-            }  
+            }
 
             // Defer/Async Scripts
-            if( !defined( 'CTK_CONFIG' ) || !isset( CTK_CONFIG['disable_script_attributes'] ) || !CTK_CONFIG['disable_script_attributes'] ) {
+            if( !self::get_config( 'disable_script_attributes' ) ) {
                 add_filter( 'script_loader_tag', array( __CLASS__, 'defer_async_scripts' ), 10, 3 );
             }
-            
+
         }
 
         return self::$instance;
 
+    }
+
+    /*
+     * Get configuration variable.
+     *    Usage: echo \MU_Plugins\CommonToolkit::get_config( 'environment' );
+     * 
+     * @since 1.0.0
+     */
+    public static function get_config( $key = null ) {
+
+        switch( true ) {
+            case !$key:
+                return self::$config;
+            case isset( self::$config[$key] ):
+                return self::$config[$key];
+            default:
+                return null;
+        }
+        
     }
 
     /*
@@ -167,7 +187,41 @@ class CommonToolkit {
             ( isset($parts['query']) ? "?{$parts['query']}" : '' ) . 
             ( isset($parts['fragment']) ? "#{$parts['fragment']}" : '' );
 
+    }
+
+    /**
+     * Combines arrays and fill in defaults as needed. Example usage:
+     * 
+     *    $person = [ 'name' => 'John', 'age' => 29 ];
+     *    $human = \MU_Plugins\CommonToolkit::set_default_atts( [
+     *       'name' => 'World',
+     *       'human' => true,
+     *       'location' => 'USA',
+     *       'age' => null
+     *    ], $person );
+     *    print_r( $human ); // Result: [ 'name' => 'John', 'human' => true, 'location' => 'USA', 'age' => 29 ];
+     *
+     * @param array  $pairs     Entire list of supported attributes and their defaults.
+     * @param array  $atts      User defined attributes in shortcode tag.
+     * @return array Combined and filtered attribute list.
+     * @since 1.0.0
+     */
+    public static function set_default_atts( $pairs, $atts ) {
+
+        $atts = (array) $atts;
+        $result = [];
+
+        foreach ($pairs as $name => $default) {
+            if ( array_key_exists($name, $atts) ) {
+                $result[$name] = $atts[$name];
+            } else {
+                $result[$name] = $default;
+            }
         }
+
+        return $result;
+
+    }
 
 }
 

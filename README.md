@@ -19,12 +19,12 @@ Simply copy the `common-toolkit.php` file to your `wp-content/mu-plugins` direct
 
 ## Constants
 
-| **Variable**                              | **Description**                                                              | **Type** | **Default**   |
-|-------------------------------------------|------------------------------------------------------------------------------|----------|---------------|
-| `WP_ENV`                                  | Environment of current instance (ex: 'production', 'development', 'staging') | string   | "production"  |
-| `CTK_CONFIG['disable_emojis']`            | Remove support for emojis                                                    | bool     | false         |
-| `CTK_CONFIG['admin_bar_color']`           | Change admin bar color in current environment                                | string   | _null_        |
-| `CTK_CONFIG['disable_script_attributes']` | Support additional attributes to script tags via wp_enqueue_script()         | bool     | false         |
+| **Variable**                | **Description**                                                              | **Type** | **Default**   |
+|-----------------------------|------------------------------------------------------------------------------|----------|---------------|
+| `environment`               | Environment of current instance (ex: 'production', 'development', 'staging') | string   | "production"  |
+| `disable_emojis`            | Remove support for emojis                                                    | bool     | false         |
+| `admin_bar_color`           | Change admin bar color in current environment                                | string   | _null_        |
+| `disable_script_attributes` | Support additional attributes to script tags via wp_enqueue_script()         | bool     | false         |
 
 ### Example
 
@@ -41,7 +41,7 @@ define( 'CTK_CONFIG', [ 'disable_emojis' => true, 'admin_bar_color' => '#336699'
 Setting:
 
 ```php
-define( 'WP_ENV', 'staging' );
+define( 'CTK_CONFIG', [ 'environment' => 'staging' ] );
 ```
 
 Getting:
@@ -50,7 +50,7 @@ Getting:
 echo getenv( 'WP_ENV' ); // Result: staging
 ```
 
-If `WP_ENV` is not defined, "production" is returned.
+If not defined, "production" is returned.
 
 ### Add Attributes to Enqueued Scripts
 
