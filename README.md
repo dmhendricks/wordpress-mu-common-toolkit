@@ -88,6 +88,8 @@ define( 'CTK_CONFIG', [ 'admin_bar_color' => '#336699' ] );
 
 ### Build URL Parsed With parsed_url()
 
+This function reverses the result of [`parse_url()`](http://php.net/manual/en/function.parse-url.php):
+
 ```php
 $parse_uri = parse_url( 'https://example.com/?hello=world#hash );
 $parse_uri['fragment'] = 'newhash';
