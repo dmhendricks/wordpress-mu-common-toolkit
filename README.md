@@ -19,12 +19,12 @@ Simply copy the `common-toolkit.php` file to your `wp-content/mu-plugins` direct
 
 ## Constants
 
-| **Variable**                | **Description**                                                              | **Type** | **Default**   |
-|-----------------------------|------------------------------------------------------------------------------|----------|---------------|
-| `environment`               | Environment of current instance (ex: 'production', 'development', 'staging') | string   | "production"  |
-| `disable_emojis`            | Remove support for emojis                                                    | bool     | false         |
-| `admin_bar_color`           | Change admin bar color in current environment                                | string   | _null_        |
-| `disable_script_attributes` | Support additional attributes to script tags via wp_enqueue_script()         | bool     | false         |
+| **Variable**                | **Description**                                                                   | **Type** | **Default**   |
+|-----------------------------|-----------------------------------------------------------------------------------|----------|---------------|
+| `environment`               | Environment of current instance (ex: 'production', 'development', 'staging')      | string   | "production"  |
+| `disable_emojis`            | Remove support for emojis                                                         | bool     | false         |
+| `admin_bar_color`           | Change admin bar color in current environment                                     | string   | _null_        |
+| `disable_script_attributes` | Disable support for additional attributes to script tags via wp_enqueue_script()  | bool     | false         |
 
 ### Example
 
