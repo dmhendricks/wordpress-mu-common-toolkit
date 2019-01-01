@@ -19,10 +19,10 @@ Simply copy the `common-toolkit.php` file to your `wp-content/mu-plugins` direct
 
 ## Constants
 
-| **Variable**                              | **Description**                                                              | **Type** | **Default** |
-|-------------------------------------------|------------------------------------------------------------------------------|----------|-------------|
+| **Variable**                              | **Description**                                                              | **Type** | **Default**   |
+|-------------------------------------------|------------------------------------------------------------------------------|----------|---------------|
 | `WP_ENV`                                  | Environment of current instance (ex: 'production', 'development', 'staging') | string   | "production"  |
-| `CTK_CONFIG['disable_emoji']`             | Remove support for emojis                                                    | bool     | false         |
+| `CTK_CONFIG['disable_emojis']`            | Remove support for emojis                                                    | bool     | false         |
 | `CTK_CONFIG['admin_bar_color']`           | Change admin bar color in current environment                                | string   | _null_        |
 | `CTK_CONFIG['disable_script_attributes']` | Support additional attributes to script tags via wp_enqueue_script()         | bool     | false         |
 
@@ -31,7 +31,7 @@ Simply copy the `common-toolkit.php` file to your `wp-content/mu-plugins` direct
 Add to your `wp-config.php`:
 
 ```php
-define( 'CTK_CONFIG', [ 'disable_emoji' => true, 'admin_bar_color' => '#336699' ] );
+define( 'CTK_CONFIG', [ 'disable_emojis' => true, 'admin_bar_color' => '#336699' ] );
 ```
 
 ## Features
@@ -75,7 +75,7 @@ Result:
 Defined in `wp-config.php`:
 
 ```php
-define( 'CTK_CONFIG', [ 'disable_emoji' => true ] );
+define( 'CTK_CONFIG', [ 'disable_emojis' => true ] );
 ```
 
 ### Change Admin Bar Color

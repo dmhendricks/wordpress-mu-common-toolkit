@@ -36,7 +36,7 @@ class CommonToolkit {
             if( !getenv( 'WP_ENV' ) ) putenv( 'WP_ENV=' . self::$env );
 
             // Disable emoji support
-            if( defined( 'CTK_CONFIG' ) && isset( CTK_CONFIG['disable_emoji'] ) && CTK_CONFIG['disable_emoji'] ) add_action( 'init', array( __CLASS__, 'disable_emojicons' ) );
+            if( defined( 'CTK_CONFIG' ) && isset( CTK_CONFIG['disable_emojis'] ) && CTK_CONFIG['disable_emojis'] ) add_action( 'init', array( __CLASS__, 'disable_emojis' ) );
 
             // Change admin bar color
             if( defined( 'CTK_CONFIG' ) && isset( CTK_CONFIG['admin_bar_color'] ) && CTK_CONFIG['admin_bar_color'] ) {
@@ -57,11 +57,11 @@ class CommonToolkit {
 
     /*
      * Remove Emoji code in page header.
-     *    Usage: define( 'CTK_CONFIG', [ 'disable_emoji' => true ] );
+     *    Usage: define( 'CTK_CONFIG', [ 'disable_emojis' => true ] );
      * 
      * @since 1.0.0
      */
-    public function disable_emojicons() {
+    public function disable_emojis() {
 
         remove_action( 'admin_print_styles', 'print_emoji_styles' );
         remove_action( 'wp_head', 'print_emoji_detection_script', 7 );
