@@ -19,12 +19,13 @@ Simply copy the `common-toolkit.php` file to your `wp-content/mu-plugins` direct
 
 ## Constants
 
-| **Variable**                | **Description**                                                                   | **Type** | **Default**   |
-|-----------------------------|-----------------------------------------------------------------------------------|----------|---------------|
-| `environment`               | Environment of current instance (ex: 'production', 'development', 'staging')      | string   | "production"  |
-| `disable_emojis`            | Remove support for emojis                                                         | bool     | false         |
-| `admin_bar_color`           | Change admin bar color in current environment                                     | string   | _null_        |
-| `disable_script_attributes` | Disable support for additional attributes to script tags via wp_enqueue_script()  | bool     | false         |
+| **Variable**        | **Description**                                                                   | **Type** | **Default**   |
+|---------------------|-----------------------------------------------------------------------------------|----------|---------------|
+| `environment`       | Environment of current instance (ex: 'production', 'development', 'staging')      | string   | "production"  |
+| `disable_emojis`    | Remove support for emojis                                                         | bool     | false         |
+| `admin_bar_color`   | Change admin bar color in current environment                                     | string   | _null_        |
+| `script_attributes` | Enable support for additional attributes to script tags via wp_enqueue_script()   | bool     | true          |
+| `shortcodes`        | Enable custom [shortcodes](#shortcodes) created by this class                     | bool     | false         |
 
 ### Example
 
@@ -95,3 +96,22 @@ $parse_uri = parse_url( 'https://example.com/?hello=world#hash );
 $parse_uri['fragment'] = 'newhash';
 $uri = \MU_Plugins\CommonToolkit::build_url( $parse_uri );
 ```
+
+## Shortcodes
+
+### `[get_datetime]`
+
+Returns a formatted date in WordPress configured timezone. Defaults to current year. Enabling:
+
+```php
+define( 'CTK_CONFIG', [ 'shortcodes' => true ] );
+```
+
+Usage:
+
+```
+Copyright [get_datetime] Your Company
+Current local time: [get_datetime format="g:i A"]
+```
+
+See PHP's [`date()`](https://php.net/date) function for formatting options.

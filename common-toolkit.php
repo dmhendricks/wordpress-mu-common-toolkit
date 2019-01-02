@@ -30,7 +30,8 @@ class CommonToolkit {
                 'environment' => defined( 'WP_ENV' ) ? WP_ENV : 'production',
                 'disable_emojis' => false,
                 'admin_bar_color' => null,
-                'disable_script_attributes' => false
+                'script_attributes' => true,
+                'shortcodes' => false
             ], defined( 'CTK_CONFIG' ) && is_array( CTK_CONFIG ) ? CTK_CONFIG : [] );
             
             // Define environment variable
@@ -45,8 +46,13 @@ class CommonToolkit {
                 add_action( 'admin_head', array( __CLASS__, 'change_admin_bar_color' ) );
             }
 
+            // Add custom shortcodes
+            if( self::get_config( 'shortcodes' ) ) {
+                if( !shortcode_exists( 'get_datetime' ) ) add_shortcode( 'get_datetime', array( __CLASS__, 'shortcode_get_datetime' ) );
+            }
+            
             // Defer/Async Scripts
-            if( !self::get_config( 'disable_script_attributes' ) ) {
+            if( !self::get_config( 'script_attributes' ) ) {
                 add_filter( 'script_loader_tag', array( __CLASS__, 'defer_async_scripts' ), 10, 3 );
             }
 
@@ -223,6 +229,23 @@ class CommonToolkit {
 
     }
 
+    /*
+     * Output a formatted date in WordPress configured timezone. Defaults to current year.
+     *     Usage: Copyright &copy;[get_datetime] Your Company
+     *            Current time: [get_datetime format="g:i A"]
+     *
+     * @since 1.0.0
+     * @see https://php.net/date
+     */
+    public function shortcode_get_datetime( $atts ) {
+
+        $atts = shortcode_atts( [
+            'format' => 'Y'
+        ], $atts, 'get_datetime' );
+      
+        return current_time( $atts['format'] );
+    }
+    
 }
 
 CommonToolkit::init();
