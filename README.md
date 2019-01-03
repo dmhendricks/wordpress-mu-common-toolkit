@@ -14,25 +14,29 @@ Simply copy the `common-toolkit.php` file to your `wp-content/mu-plugins` direct
 
 ## Requirements
 
-- **PHP 7.0** or higher (PHP 5.6 will work using the defaults only)
+- **PHP 7.0 or higher** (PHP 5.6 support coming soon)
 - WordPress 4.7 or higher
 
 ## Constants
 
-| **Variable**        | **Description**                                                                   | **Type** | **Default**   |
-|---------------------|-----------------------------------------------------------------------------------|----------|---------------|
-| `environment`       | Environment of current instance (ex: 'production', 'development', 'staging')      | string   | "production"  |
-| `disable_emojis`    | Remove support for emojis                                                         | bool     | false         |
-| `admin_bar_color`   | Change admin bar color in current environment                                     | string   | _null_        |
-| `script_attributes` | Enable support for additional attributes to script tags via wp_enqueue_script()   | bool     | true          |
-| `shortcodes`        | Enable custom [shortcodes](#shortcodes) created by this class                     | bool     | false         |
+| **Variable**           | **Description**                                                                                                          | **Type**    | **Default**   |
+|------------------------|--------------------------------------------------------------------------------------------------------------------------|-------------|---------------|
+| `environment`          | Environment of current instance (ex: 'production', 'development', 'staging')                                             | string      | "production"  |
+| `disable_emojis`       | Remove support for emojis                                                                                                | bool        | false         |
+| `admin_bar_color`      | Change admin bar color in current environment                                                                            | string      | _null_        |
+| `script_attributes`    | Enable support for [additional attributes](#add-attributes-to-enqueued-scripts) to script tags via wp_enqueue_script()   | bool        | flase         |
+| `shortcodes`           | Enable custom [shortcodes](#shortcodes) created by this class                                                            | bool        | false         |
+| `disable_xmlrpc`       | Disable XML-RPC support                                                                                                  | bool        | false         |
+| `meta_generator`       | Enable or change meta generator tags in page head and RSS feeds                                                          | bool|string | true          |
+| `windows_live_writer`  | Enable [Windows Live Writer](https://is.gd/Q6KjEQ) support                                                               | bool        | false         |
+| `feed_links`           | Include RSS feed links in page head                                                                                      | bool        | true          |
 
 ### Example
 
 Add to your `wp-config.php`:
 
 ```php
-define( 'CTK_CONFIG', [ 'disable_emojis' => true, 'admin_bar_color' => '#336699' ] );
+define( 'CTK_CONFIG', [ 'disable_emojis' => true, 'admin_bar_color' => '#336699', 'script_attributes' => true, 'meta_generator' => 'Atari 2600' ] );
 ```
 
 ## Features
@@ -69,14 +73,6 @@ Result:
 <script async="async" src="https://example.com/wp-content/themes/my-theme/assets/js/script.js?ver=5.0.0"></script>
 <script defer="defer" src="https://example.com/wp-content/themes/my-theme/assets/js/script.js?ver=5.0.0"></script>
 <script async="async" custom-element="amp-audio" src="https://cdn.ampproject.org/v0/amp-audio-0.1.js?ver=5.0.0"></script>
-```
-
-### Disable Emojis
-
-Defined in `wp-config.php`:
-
-```php
-define( 'CTK_CONFIG', [ 'disable_emojis' => true ] );
 ```
 
 ### Change Admin Bar Color

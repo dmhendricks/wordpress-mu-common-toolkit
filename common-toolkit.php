@@ -30,8 +30,12 @@ class CommonToolkit {
                 'environment' => defined( 'WP_ENV' ) ? WP_ENV : 'production',
                 'disable_emojis' => false,
                 'admin_bar_color' => null,
-                'script_attributes' => true,
-                'shortcodes' => false
+                'script_attributes' => false,
+                'shortcodes' => false,
+                'disable_xmlrpc' => false,
+                'meta_generator' => true,
+                'windows_live_writer' => false,
+                'feed_links' => true
             ], defined( 'CTK_CONFIG' ) && is_array( CTK_CONFIG ) ? CTK_CONFIG : [] );
             
             // Define environment variable
@@ -50,7 +54,29 @@ class CommonToolkit {
             if( self::get_config( 'shortcodes' ) ) {
                 if( !shortcode_exists( 'get_datetime' ) ) add_shortcode( 'get_datetime', array( __CLASS__, 'shortcode_get_datetime' ) );
             }
-            
+
+            // Disable XML-RPC & RSD
+            if( self::get_config( 'disable_xmlrpc' ) ) {
+                add_filter( 'xmlrpc_enabled', '__return_false' );
+                remove_action( 'wp_head', 'rsd_link' );
+            }
+
+            // Remove Windows Live Writer tag
+            if( !self::get_config( 'windows_live_writer' ) ) remove_action( 'wp_head', 'wlwmanifest_link' );
+
+
+            // Remove or modify meta generator tags in page head and RSS feeds
+            if( self::get_config( 'meta_generator' ) === false ) {
+                remove_action( 'wp_head', 'wp_generator' );
+            }
+            add_filter( 'the_generator', array( __CLASS__, 'modify_meta_generator_tags' ), 10, 2 );
+
+            // Remove RSS feed links
+            if( !self::get_config( 'feed_links' ) ) {
+                remove_action( 'wp_head', 'feed_links', 2 );
+                remove_action( 'wp_head', 'feed_links_extra', 3 );
+            }
+
             // Defer/Async Scripts
             if( !self::get_config( 'script_attributes' ) ) {
                 add_filter( 'script_loader_tag', array( __CLASS__, 'defer_async_scripts' ), 10, 3 );
@@ -226,6 +252,25 @@ class CommonToolkit {
         }
 
         return $result;
+
+    }
+
+    /*
+     * Remove or modify meta generator tag.
+     *
+     * @since 1.0.0
+     */
+    public function modify_meta_generator_tags( $current, $type ) {
+
+        $meta_generator = self::get_config( 'meta_generator' );
+        switch( true ) {
+            case $meta_generator === true:
+                return $current;
+            case is_string( $meta_generator ):
+                return $meta_generator;
+            default:
+                return '';
+        }
 
     }
 
