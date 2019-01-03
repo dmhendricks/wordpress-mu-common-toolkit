@@ -14,7 +14,7 @@ Simply copy the `common-toolkit.php` file to your `wp-content/mu-plugins` direct
 
 ## Requirements
 
-- **PHP 7.0 or higher** (PHP 5.6 support coming soon)
+- PHP 7.0 or higher
 - WordPress 4.7 or higher
 
 ## Configuration
@@ -28,7 +28,7 @@ Simply copy the `common-toolkit.php` file to your `wp-content/mu-plugins` direct
 | `shortcodes`           | Enable custom [shortcodes](#shortcodes) created by this class                                                            | bool        | false         |
 | `disable_xmlrpc`       | Disable XML-RPC                                                                                                          | bool        | false         |
 | `meta_generator`       | Enable or change meta generator tags in page head and RSS feeds                                                          | bool/string | true          |
-| `windows_live_writer`  | Enable [Windows Live Writer](https://is.gd/Q6KjEQ) support                                                               | bool        | false         |
+| `windows_live_writer`  | Enable [Windows Live Writer](https://is.gd/Q6KjEQ) support                                                               | bool        | true          |
 | `feed_links`           | Include RSS feed links in page head                                                                                      | bool        | true          |
 
 ### Example
@@ -70,9 +70,9 @@ wp_enqueue_script( 'script-custom-attributes', 'https://cdn.ampproject.org/v0/am
 Result:
 
 ```html
-<script async="async" src="https://example.com/wp-content/themes/my-theme/assets/js/script.js?ver=5.0.0"></script>
-<script defer="defer" src="https://example.com/wp-content/themes/my-theme/assets/js/script.js?ver=5.0.0"></script>
-<script async="async" custom-element="amp-audio" src="https://cdn.ampproject.org/v0/amp-audio-0.1.js?ver=5.0.0"></script>
+<script async src="https://example.com/wp-content/themes/my-theme/assets/js/script.js?ver=5.0.0"></script>
+<script defer src="https://example.com/wp-content/themes/my-theme/assets/js/script.js?ver=5.0.0"></script>
+<script async custom-element="amp-audio" src="https://cdn.ampproject.org/v0/amp-audio-0.1.js?ver=5.0.0"></script>
 ```
 
 ### Change Admin Bar Color
@@ -111,3 +111,20 @@ Current date/time: [get_datetime]
 ```
 
 See PHP's [`date()`](https://php.net/date) function for formatting options.
+
+## Future Plans
+
+- Add support for PHP 5.6
+- Add support for external config and`.env` files
+- Add ability to change favicons by environment
+- Custom WP Admin footer
+- Add function to test if WP Object Cache is enabled
+- Add rewrite for custom image/script URLs/CDN support
+- Hide login errors
+- Disable update notifications: core, plugins, themes or all; Option to remove for all but admins
+- Change excerpt length
+- Ability to add class instance to $GLOBALS
+- Remove `?ver=` from some/all scripts
+- Disable JSON REST API
+- Enable TinyMCE lower toolbar
+- Completely disable comments

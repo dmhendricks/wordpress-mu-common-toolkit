@@ -34,7 +34,7 @@ class CommonToolkit {
                 'shortcodes' => false,
                 'disable_xmlrpc' => false,
                 'meta_generator' => true,
-                'windows_live_writer' => false,
+                'windows_live_writer' => true,
                 'feed_links' => true
             ], defined( 'CTK_CONFIG' ) && is_array( CTK_CONFIG ) ? CTK_CONFIG : [] );
             
