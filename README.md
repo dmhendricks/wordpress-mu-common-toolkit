@@ -1,6 +1,5 @@
 [![Author](https://img.shields.io/badge/author-Daniel%20M.%20Hendricks-lightgrey.svg?colorB=9900cc&style=flat-square)](https://www.danhendricks.com/?utm_source=github.com&utm_medium=campaign&utm_content=button&utm_campaign=wordpress-mu-common-toolkit)
 [![GitHub License](https://img.shields.io/badge/license-GPLv2-yellow.svg?style=flat-square)](https://raw.githubusercontent.com/dmhendricks/wordpress-mu-common-toolkit/master/LICENSE)
-[![Analytics](https://ga-beacon.appspot.com/UA-67333102-2/dmhendricks/wordpress-mu-common-toolkit?flat)](https://github.com/igrigorik/ga-beacon/?utm_source=github.com&utm_medium=referral&utm_content=button&utm_campaign=dmhendricks%2Fwordpress-mu-common-toolkit)
 [![Get Flywheel](https://img.shields.io/badge/hosting-Flywheel-green.svg?style=flat-square&label=compatible&colorB=AE2A21)](https://share.getf.ly/e25g6k?utm_source=github.com&utm_medium=campaign&utm_content=button&utm_campaign=dmhendricks%2Fwordpress-mu-common-toolkit)
 [![Twitter](https://img.shields.io/twitter/url/https/github.com/dmhendricks/wordpress-mu-common-toolkit.svg?style=social)](https://twitter.com/danielhendricks)
 
@@ -116,6 +115,7 @@ See PHP's [`date()`](https://php.net/date) function for formatting options.
 
 - Add support for PHP 5.6
 - Add support for external config and`.env` files
+- Detect [Classic Editor](https://wordpress.org/plugins/classic-editor/)/[ClassicPress](https://www.classicpress.net/)
 - Add ability to change favicons by environment
 - Custom WP Admin footer
 - Add function to test if WP Object Cache is enabled
@@ -128,3 +128,6 @@ See PHP's [`date()`](https://php.net/date) function for formatting options.
 - Disable JSON REST API
 - Enable TinyMCE lower toolbar
 - Completely disable comments
+- Inject standard Google Analytics script
+
+[![Analytics](https://ga-beacon.appspot.com/UA-67333102-2/dmhendricks/wordpress-mu-common-toolkit?flat)](https://github.com/igrigorik/ga-beacon/?utm_source=github.com&utm_medium=referral&utm_content=button&utm_campaign=dmhendricks%2Fwordpress-mu-common-toolkit)
