@@ -17,7 +17,7 @@ Simply copy the `common-toolkit.php` file to your `wp-content/mu-plugins` direct
 - **PHP 7.0 or higher** (PHP 5.6 support coming soon)
 - WordPress 4.7 or higher
 
-## Constants
+## Configuration
 
 | **Variable**           | **Description**                                                                                                          | **Type**    | **Default**   |
 |------------------------|--------------------------------------------------------------------------------------------------------------------------|-------------|---------------|
@@ -26,7 +26,7 @@ Simply copy the `common-toolkit.php` file to your `wp-content/mu-plugins` direct
 | `admin_bar_color`      | Change admin bar color in current environment                                                                            | string      | _null_        |
 | `script_attributes`    | Enable support for [additional attributes](#add-attributes-to-enqueued-scripts) to script tags via wp_enqueue_script()   | bool        | flase         |
 | `shortcodes`           | Enable custom [shortcodes](#shortcodes) created by this class                                                            | bool        | false         |
-| `disable_xmlrpc`       | Disable XML-RPC support                                                                                                  | bool        | false         |
+| `disable_xmlrpc`       | Disable XML-RPC                                                                                                          | bool        | false         |
 | `meta_generator`       | Enable or change meta generator tags in page head and RSS feeds                                                          | bool|string | true          |
 | `windows_live_writer`  | Enable [Windows Live Writer](https://is.gd/Q6KjEQ) support                                                               | bool        | false         |
 | `feed_links`           | Include RSS feed links in page head                                                                                      | bool        | true          |
@@ -97,7 +97,7 @@ $uri = \MU_Plugins\CommonToolkit::build_url( $parse_uri );
 
 ### `[get_datetime]`
 
-Returns a formatted date in WordPress configured timezone. Defaults to current year. Enabling:
+Returns a formatted date in WordPress configured timezone. Defaults to current date/time in MySQL format. Enabling:
 
 ```php
 define( 'CTK_CONFIG', [ 'shortcodes' => true ] );
@@ -106,8 +106,8 @@ define( 'CTK_CONFIG', [ 'shortcodes' => true ] );
 Usage:
 
 ```
-Copyright [get_datetime] Your Company
-Current local time: [get_datetime format="g:i A"]
+Copyright &copy;[get_datetime format="Y"] Your Company
+Current date/time: [get_datetime]
 ```
 
 See PHP's [`date()`](https://php.net/date) function for formatting options.

@@ -275,9 +275,10 @@ class CommonToolkit {
     }
 
     /*
-     * Output a formatted date in WordPress configured timezone. Defaults to current year.
-     *     Usage: Copyright &copy;[get_datetime] Your Company
-     *            Current time: [get_datetime format="g:i A"]
+     * Output a formatted date in WordPress configured timezone. Defaults to curreent
+     * date/time in MySQL format.
+     *     Usage: Current date/time: [get_datetime]
+     *            Copyright &copy;[get_datetime format="Y"] Your Company
      *
      * @since 1.0.0
      * @see https://php.net/date
@@ -285,7 +286,7 @@ class CommonToolkit {
     public function shortcode_get_datetime( $atts ) {
 
         $atts = shortcode_atts( [
-            'format' => 'Y'
+            'format' => 'mysql'
         ], $atts, 'get_datetime' );
       
         return current_time( $atts['format'] );
