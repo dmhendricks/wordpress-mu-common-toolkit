@@ -27,7 +27,7 @@ Simply copy the `common-toolkit.php` file to your `wp-content/mu-plugins` direct
 | `script_attributes`    | Enable support for [additional attributes](#add-attributes-to-enqueued-scripts) to script tags via wp_enqueue_script()   | bool        | flase         |
 | `shortcodes`           | Enable custom [shortcodes](#shortcodes) created by this class                                                            | bool        | false         |
 | `disable_xmlrpc`       | Disable XML-RPC                                                                                                          | bool        | false         |
-| `meta_generator`       | Enable or change meta generator tags in page head and RSS feeds                                                          | bool|string | true          |
+| `meta_generator`       | Enable or change meta generator tags in page head and RSS feeds                                                          | bool/string | true          |
 | `windows_live_writer`  | Enable [Windows Live Writer](https://is.gd/Q6KjEQ) support                                                               | bool        | false         |
 | `feed_links`           | Include RSS feed links in page head                                                                                      | bool        | true          |
 
