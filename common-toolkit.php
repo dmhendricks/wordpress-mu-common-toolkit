@@ -2,7 +2,7 @@
 /**
  * Plugin Name:     Common Toolkit
  * Description:     A must use (MU) plugin for WordPress that contains helper functions and snippets.
- * Version:         1.0.0
+ * Version:         0.7.0
  * Author:          Daniel M. Hendricks
  * Author URI:      https://www.danhendricks.com/
  * Original:        https://github.com/dmhendricks/wordpress-mu-common-toolkit/
@@ -13,7 +13,7 @@ namespace MU_Plugins;
 class CommonToolkit {
 
     private static $instance;
-    private static $version = '1.0.0';
+    private static $version = '0.7.0';
     protected static $config;
     
     public static function init() {
@@ -78,7 +78,7 @@ class CommonToolkit {
             }
 
             // Defer/Async Scripts
-            if( !self::get_config( 'script_attributes' ) ) {
+            if( self::get_config( 'script_attributes' ) ) {
                 add_filter( 'script_loader_tag', array( __CLASS__, 'defer_async_scripts' ), 10, 3 );
             }
 
@@ -92,7 +92,7 @@ class CommonToolkit {
      * Get configuration variable.
      *    Usage: echo \MU_Plugins\CommonToolkit::get_config( 'environment' );
      * 
-     * @since 1.0.0
+     * @since 0.7.0
      */
     public static function get_config( $key = null ) {
 
@@ -111,7 +111,7 @@ class CommonToolkit {
      * Remove Emoji code in page header.
      *    Usage: define( 'CTK_CONFIG', [ 'disable_emojis' => true ] );
      * 
-     * @since 1.0.0
+     * @since 0.7.0
      */
     public function disable_emojis() {
 
@@ -133,7 +133,7 @@ class CommonToolkit {
      * Set a different admin bar color color. Useful for differentiating among environnments.
      *    Usage: define( 'CTK_CONFIG', [ 'admin_bar_color' => '#336699' ] );
      * 
-     * @since 1.0.0
+     * @since 0.7.0
      */
     public function change_admin_bar_color() {
 
@@ -147,7 +147,7 @@ class CommonToolkit {
      *           wp_enqueue_script( 'script-handle-defer-example', get_template_directory_uri() . '/assets/js/script.js#defer' );
      *           wp_enqueue_script( 'script-custom-attributes', get_template_directory_uri() . '/assets/js/script.js?custom_attribute[]=custom-element|amp-ad' );
      * 
-     * @since 1.0.0
+     * @since 0.7.0
      * @see http://php.net/manual/en/domdocument.loadhtml.php
      * @see http://php.net/manual/en/domelement.setattribute.php
      */
@@ -169,8 +169,7 @@ class CommonToolkit {
         if( !$link instanceof \DOMNodeList || !$link->length ) return $tag;
 
         // Remove extra DOM tags
-        $dom->removeChild( $dom->firstChild );
-        $dom->replaceChild( $dom->firstChild->firstChild->firstChild, $dom->firstChild );
+        $dom = self::strip_extra_dom_elements( $dom );
 
         // Add async/defer attribute
         if( isset( $parsed_url['fragment'] ) && $parsed_url['fragment'] == 'defer' || $parsed_url['fragment'] == 'async' ) {
@@ -203,7 +202,7 @@ class CommonToolkit {
      *    Usage: $parse_uri = parse_url( 'https://example.com/?hello=world#hash );
      *           $uri = \MU_Plugins\CommonToolkit::build_url( $parse_uri );
      * 
-     * @since 1.0.0
+     * @since 0.7.0
      * @see https://stackoverflow.com/a/35207936
      */
     public static function build_url( array $parts ) {
@@ -236,7 +235,7 @@ class CommonToolkit {
      * @param array  $pairs     Entire list of supported attributes and their defaults.
      * @param array  $atts      User defined attributes in shortcode tag.
      * @return array Combined and filtered attribute list.
-     * @since 1.0.0
+     * @since 0.7.0
      */
     public static function set_default_atts( $pairs, $atts ) {
 
@@ -258,7 +257,7 @@ class CommonToolkit {
     /*
      * Remove or modify meta generator tag.
      *
-     * @since 1.0.0
+     * @since 0.7.0
      */
     public function modify_meta_generator_tags( $current, $type ) {
 
@@ -267,7 +266,11 @@ class CommonToolkit {
             case $meta_generator === true:
                 return $current;
             case is_string( $meta_generator ):
-                return $meta_generator;
+                if( strpos( $current, '<generator>' ) !== false ) {
+                    return sprintf( '<generator>%s</generator>', $meta_generator );
+                } else {
+                    return sprintf( '<meta name="generator" content="%s" />', $meta_generator );
+                }
             default:
                 return '';
         }
@@ -276,22 +279,44 @@ class CommonToolkit {
 
     /*
      * Output a formatted date in WordPress configured timezone. Defaults to curreent
-     * date/time in MySQL format.
+     * date/time in format configured in WP Admin.
      *     Usage: Current date/time: [get_datetime]
      *            Copyright &copy;[get_datetime format="Y"] Your Company
      *
-     * @since 1.0.0
+     * @since 0.7.0
      * @see https://php.net/date
      */
     public function shortcode_get_datetime( $atts ) {
 
         $atts = shortcode_atts( [
-            'format' => 'mysql'
+            'format' => get_option( 'date_format' ) . ' ' . get_option( 'time_format' )
         ], $atts, 'get_datetime' );
       
         return current_time( $atts['format'] );
     }
-    
+
+    /*
+     * Remove extra HTML tags added by DomDocument
+     *
+     * @since 0.7.0
+     */
+    private function strip_extra_dom_elements( $element ) {
+
+        $element->removeChild( $element->firstChild );
+        $element->replaceChild( $element->firstChild->firstChild->firstChild, $element->firstChild );
+        return $element;
+
+    }
+
+    /*
+     * Magic method to return config as JSON string.
+     *
+     * @since 0.7.0
+     */
+    public function __toString() {
+        return json_encode( self::get_config() );
+    }
+
 }
 
 CommonToolkit::init();
