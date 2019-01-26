@@ -5,7 +5,7 @@
 
 # WordPress Common Toolkit MU Plugin
 
-A simple [MU plugin](https://codex.wordpress.org/Must_Use_Plugins) for WordPress that adds functionality that I use on web site projects.
+A simple [MU plugin](https://codex.wordpress.org/Must_Use_Plugins) for WordPress that adds functionality that I use on web site projects, including a configuration registry.
 
 ## Installation
 
@@ -13,7 +13,7 @@ Simply copy the `common-toolkit.php` file to your `wp-content/mu-plugins` direct
 
 ## Requirements
 
-- PHP 7.0 or higher
+- PHP ~5.6 (via JSON file) and PHP 7.x (via array or JSON file)
 - WordPress 4.7 or higher
 
 ## Configuration
@@ -32,11 +32,47 @@ Simply copy the `common-toolkit.php` file to your `wp-content/mu-plugins` direct
 
 ### Example
 
-Add to your `wp-config.php`:
+#### Via Configuration File (PHP 5.6 or higher)
+
+This is the preferred method if you wish to avoid having a complex array in your `wp-config.php`:
+
+```php
+// Load configuration from a file in webroot. 
+define( 'CTK_CONFIG', 'sample-config.json' );
+
+// Load configuration from a file off of the parent directory of webroot
+define( 'CTK_CONFIG', '../conf/sample-config.json' );
+```
+
+See [sample-config.json](https://github.com/dmhendricks/wordpress-mu-common-toolkit/blob/master/sample-config.json) for example.
+
+#### Via Array (PHP 7 or higher)
+
+Rather than using a JSON file for configuration, you can set `CTK_CONFIG` to an array of valyes in `wp-config.php`:
 
 ```php
 define( 'CTK_CONFIG', [ 'disable_emojis' => true, 'admin_bar_color' => '#336699', 'script_attributes' => true, 'meta_generator' => 'Atari 2600' ] );
 ```
+
+### Getting Configuration Values
+
+You can use the `ctk_config` filter to retrieve values from the config registry (including custom). Using [sample-config.json](https://github.com/dmhendricks/wordpress-mu-common-toolkit/blob/master/sample-config.json) as an example:
+
+```php
+// Get meta generator value
+$meta_generator = apply_filter( 'ctk_config', 'common_toolkit/meta_generator' );
+
+// Get single custom variable
+$ny_var = apply_filter( 'ctk_config', 'my_custom_variable' );
+
+// Get an array of classic books
+$classic_books = apply_filter( 'ctk_config', 'nested_example/books/classics' );
+
+// Get entire config registry as associative array
+$config = apply_filter( 'ctk_config', null );
+```
+
+You can add any variable you want to make available to your site's themes and plugins.
 
 ## Features
 
@@ -113,8 +149,10 @@ See PHP's [`date()`](https://php.net/date) function for formatting options.
 
 ## Future Plans
 
-- Add support for PHP 5.6
-- Add support for external config and`.env` files
+- ~~Add support for PHP 5.6~~
+- ~~Add support for external config files & registry~~
+- ~~Add filter for retrieving values from config~~
+- Add check for new version releases
 - Detect [Classic Editor](https://wordpress.org/plugins/classic-editor/)/[ClassicPress](https://www.classicpress.net/)
 - Add ability to change favicons by environment
 - Custom WP Admin footer
@@ -123,8 +161,7 @@ See PHP's [`date()`](https://php.net/date) function for formatting options.
 - Hide login errors
 - Disable update notifications: core, plugins, themes or all; Option to remove for all but admins
 - Change excerpt length
-- Ability to add class instance to $GLOBALS
-- Remove `?ver=` from some/all scripts
+- Remove `?ver=` from specific or all scripts
 - Disable JSON REST API
 - Enable TinyMCE lower toolbar
 - Completely disable comments

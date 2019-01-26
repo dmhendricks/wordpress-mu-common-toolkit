@@ -1,0 +1,28 @@
+{
+        "common_toolkit": {
+                "environment": "development",
+                "disable_emojis": true,
+                "admin_bar_color": null,
+                "script_attributes": true,
+                "shortcodes": false,
+                "disable_xmlrpc": false,
+                "meta_generator": "Atari 2600",
+                "windows_live_writer": false,
+                "feed_links": true
+        },
+        "my_custom_variable": "Hello World!",
+        "nested_example": {
+                "label": "A list of books",
+                "books": {
+                        "favorites": [
+                                "50 Shades of Grey",
+                                "Sam Walton: Made In America"
+                        ],
+                        "classics": [
+                                "The Great Gatsby",
+                                "Moby Dick",
+                                "War and Peace"
+                        ]
+                }
+        }
+}

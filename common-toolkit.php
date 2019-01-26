@@ -2,7 +2,7 @@
 /**
  * Plugin Name:     Common Toolkit
  * Description:     A must use (MU) plugin for WordPress that contains helper functions and snippets.
- * Version:         0.7.0
+ * Version:         0.8.0
  * Author:          Daniel M. Hendricks
  * Author URI:      https://www.danhendricks.com/
  * Original:        https://github.com/dmhendricks/wordpress-mu-common-toolkit/
@@ -13,8 +13,8 @@ namespace MU_Plugins;
 class CommonToolkit {
 
     private static $instance;
-    private static $version = '0.7.0';
-    protected static $config;
+    private static $version = '0.8.0';
+    protected static $config = [];
     
     public static function init() {
 
@@ -25,8 +25,17 @@ class CommonToolkit {
             // Define version constant
             if ( !defined( __CLASS__ . '\VERSION' ) ) define( __CLASS__ . '\VERSION', self::$version );
 
-            // Set configuration
-            self::$config = self::set_default_atts( [
+            // Get configuration variables
+            if( defined( 'CTK_CONFIG' ) ) {
+                if( is_array( CTK_CONFIG ) ) {
+                    self::$config['common_toolkit'] = CTK_CONFIG;
+                } else if( is_string( CTK_CONFIG ) && file_exists( realpath( CTK_CONFIG ) ) ) {
+                    self::$config = @json_decode( file_get_contents( realpath( CTK_CONFIG ) ), true ) ?: [];
+                }
+            }
+
+            // Set defaults
+            self::$config['common_toolkit'] = self::set_default_atts( [
                 'environment' => defined( 'WP_ENV' ) ? WP_ENV : 'production',
                 'disable_emojis' => false,
                 'admin_bar_color' => null,
@@ -36,51 +45,57 @@ class CommonToolkit {
                 'meta_generator' => true,
                 'windows_live_writer' => true,
                 'feed_links' => true
-            ], defined( 'CTK_CONFIG' ) && is_array( CTK_CONFIG ) ? CTK_CONFIG : [] );
+            ], self::$config['common_toolkit'] );
             
             // Define environment variable
-            putenv( 'WP_ENV=' . self::get_config( 'environment' ) );
+            if( !getenv( 'WP_ENV' ) ) putenv( 'WP_ENV=' . self::get_config( 'common_toolkit/environment' ) );
 
             // Disable emoji support
-            if( self::get_config( 'disable_emojis' ) ) add_action( 'init', array( __CLASS__, 'disable_emojis' ) );
+            if( self::get_config( 'common_toolkit/disable_emojis' ) ) add_action( 'init', array( self::$instance, 'disable_emojis' ) );
 
             // Change admin bar color
-            if( self::get_config( 'admin_bar_color' ) ) {
-                add_action( 'wp_head', array( __CLASS__, 'change_admin_bar_color' ) );
-                add_action( 'admin_head', array( __CLASS__, 'change_admin_bar_color' ) );
+            if( self::get_config( 'common_toolkit/admin_bar_color' ) ) {
+                add_action( 'wp_head', array( self::$instance, 'change_admin_bar_color' ) );
+                add_action( 'admin_head', array( self::$instance, 'change_admin_bar_color' ) );
             }
 
             // Add custom shortcodes
-            if( self::get_config( 'shortcodes' ) ) {
-                if( !shortcode_exists( 'get_datetime' ) ) add_shortcode( 'get_datetime', array( __CLASS__, 'shortcode_get_datetime' ) );
+            if( self::get_config( 'common_toolkit/shortcodes' ) ) {
+                if( !shortcode_exists( 'get_datetime' ) ) add_shortcode( 'get_datetime', array( self::$instance, 'shortcode_get_datetime' ) );
             }
 
             // Disable XML-RPC & RSD
-            if( self::get_config( 'disable_xmlrpc' ) ) {
+            if( self::get_config( 'common_toolkit/disable_xmlrpc' ) ) {
                 add_filter( 'xmlrpc_enabled', '__return_false' );
                 remove_action( 'wp_head', 'rsd_link' );
             }
 
             // Remove Windows Live Writer tag
-            if( !self::get_config( 'windows_live_writer' ) ) remove_action( 'wp_head', 'wlwmanifest_link' );
+            if( !self::get_config( 'common_toolkit/windows_live_writer' ) ) remove_action( 'wp_head', 'wlwmanifest_link' );
 
 
             // Remove or modify meta generator tags in page head and RSS feeds
-            if( self::get_config( 'meta_generator' ) === false ) {
+            if( self::get_config( 'common_toolkit/meta_generator' ) === false ) {
                 remove_action( 'wp_head', 'wp_generator' );
             }
-            add_filter( 'the_generator', array( __CLASS__, 'modify_meta_generator_tags' ), 10, 2 );
+            add_filter( 'the_generator', array( self::$instance, 'modify_meta_generator_tags' ), 10, 2 );
 
             // Remove RSS feed links
-            if( !self::get_config( 'feed_links' ) ) {
+            if( !self::get_config( 'common_toolkit/feed_links' ) ) {
                 remove_action( 'wp_head', 'feed_links', 2 );
                 remove_action( 'wp_head', 'feed_links_extra', 3 );
             }
 
             // Defer/Async Scripts
-            if( self::get_config( 'script_attributes' ) ) {
-                add_filter( 'script_loader_tag', array( __CLASS__, 'defer_async_scripts' ), 10, 3 );
+            if( self::get_config( 'common_toolkit/script_attributes' ) ) {
+                add_filter( 'script_loader_tag', array( self::$instance, 'defer_async_scripts' ), 10, 3 );
             }
+
+            // Add filter to retrieve configuration values
+            add_filter( 'ctk_config', array( self::$instance, 'ctk_config_filter' ) );
+
+            // Add action hook
+            do_action( 'common_toolkit_loaded' );
 
         }
 
@@ -90,17 +105,44 @@ class CommonToolkit {
 
     /*
      * Get configuration variable.
-     *    Usage: echo \MU_Plugins\CommonToolkit::get_config( 'environment' );
+     *    Usage: echo \MU_Plugins\CommonToolkit::get_config( 'common_toolkit/environment' );
      * 
+     * @param string $key Configuration variable path to retrieve
+     * @param mixed $default The default value to return if $key is not found
      * @since 0.7.0
+     * @see https://github.com/dmhendricks/wordpress-toolkit/blob/master/core/ConfigRegistry.php
      */
-    public static function get_config( $key = null ) {
+    public static function get_config( $key = null, $default = null ) {
+
+        if ( !$key ) {
+            return self::$config;
+        }
+        $value = self::$config;
+        foreach( explode('/', $key ) as $k ) {
+            if ( !isset( $value[$k] ) ) {
+                return $default;
+            }
+            $value = &$value[$k];
+        }
+        return $value;
+
+    }
+
+    /**
+     * Filter to retrieve configuration values
+     *    Usage: echo apply_filters( 'ctk_config', 'disable_xmlrpc' ); // Echos value of 'disable_xmlrpc'
+     *           var_dump( apply_filters( 'ctk_config', null ) ); // Displays all config variables
+     *
+     * @since 0.8.0
+     * @todo Add ability to modify config values
+     */
+    public static function ctk_config_filter( $key = null ) {
 
         switch( true ) {
             case !$key:
-                return self::$config;
-            case isset( self::$config[$key] ):
-                return self::$config[$key];
+                return self::get_config();
+            case self::get_config( $key ) !== null:
+                return self::get_config( $key );
             default:
                 return null;
         }
@@ -261,7 +303,7 @@ class CommonToolkit {
      */
     public function modify_meta_generator_tags( $current, $type ) {
 
-        $meta_generator = self::get_config( 'meta_generator' );
+        $meta_generator = self::get_config( 'common_toolkit/meta_generator' );
         switch( true ) {
             case $meta_generator === true:
                 return $current;
