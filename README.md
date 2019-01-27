@@ -193,6 +193,17 @@ $parse_uri['fragment'] = 'newhash';
 $uri = \MU_Plugins\CommonToolkit::build_url( $parse_uri );
 ```
 
+## Action Hook
+
+If you want to perform some logic only if this script is loaded, you can use the `common_toolkit_loaded` action hook (which executes during the [init](https://codex.wordpress.org/Plugin_API/Action_Reference#Actions_Run_During_a_Typical_Request) phase).
+
+```php
+add_action( 'common_toolkit_loaded', function() {
+	// Do something if common toolkit is loaded ...
+	var_dump( apply_filters( 'ctk_config', null ) );
+});
+```
+
 ## Shortcodes
 
 ### `[get_datetime]`

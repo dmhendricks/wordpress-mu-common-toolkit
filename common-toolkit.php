@@ -107,8 +107,10 @@ class CommonToolkit {
             // Add filter to retrieve configuration values
             add_filter( 'ctk_config', array( self::$instance, 'ctk_config_filter' ) );
 
-            // Add action hook
-            do_action( 'common_toolkit_loaded' );
+            // Add action hook during init phase
+            add_action( 'init', function() {
+                do_action( 'common_toolkit_loaded' );
+            });
 
         }
 
