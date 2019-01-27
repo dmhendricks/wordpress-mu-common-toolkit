@@ -26,6 +26,7 @@ All variables are optional.
 | `environment_constant`    | Constant used to determine environment, environmental variable name for `getenv()`.                                      | string      | "WP_ENV"      |
 | `environment_production`  | The label used to match if production environment.                                                                       | string      | "production"  |
 | `disable_emojis`          | Remove support for emojis                                                                                                | bool        | false         |
+| `disable_search`          | Disable WordPress site search                                                                                            | bool        | false         |
 | `admin_bar_color`         | Change admin bar color in current environment                                                                            | string      | _null_        |
 | `script_attributes`       | Enable support for [additional attributes](#add-attributes-to-enqueued-scripts) to script tags via wp_enqueue_script()   | bool        | flase         |
 | `shortcodes`              | Enable custom [shortcodes](#shortcodes) created by this class                                                            | bool        | false         |

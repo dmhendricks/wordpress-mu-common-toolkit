@@ -42,6 +42,7 @@ class CommonToolkit {
                 'environment_production' => 'production',
                 'admin_bar_color' => null,
                 'disable_emojis' => false,
+                'disable_search' => false,
                 'disable_xmlrpc' => false,
                 'feed_links' => true,
                 'meta_generator' => true,
@@ -71,6 +72,12 @@ class CommonToolkit {
 
             // Disable emoji support
             if( self::get_config( 'common_toolkit/disable_emojis' ) ) add_action( 'init', array( self::$instance, 'disable_emojis' ) );
+
+            // Disable search
+            if( self::get_config( 'common_toolkit/disable_search' ) ) {
+                add_action( 'parse_query', array( self::$instance, 'disable_search' ) );
+                add_action( 'get_search_form', '__return_null' );
+            }
 
             // Change admin bar color
             if( self::get_config( 'common_toolkit/admin_bar_color' ) ) {
@@ -213,6 +220,25 @@ class CommonToolkit {
         add_filter( 'tiny_mce_plugins', function( $plugins) {
             return is_array( $plugins ) ? array_diff( $plugins, array( 'wpemoji' ) ) : $plugins;
         });
+
+    }
+
+    /*
+     * Disables WordPress site search and return 404
+     * 
+     * @since 0.8.1
+     */
+    public function disable_search( $query, $error = true ) {
+
+        if ( is_search() ) {
+
+            $query->is_search = false;
+            $query->query_vars['s'] = false;
+            $query->query['s'] = false;
+            
+            if ( $error == true ) $query->is_404 = true;
+
+        }
 
     }
 

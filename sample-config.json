@@ -5,6 +5,7 @@
                 "environment_production": "production",
                 "admin_bar_color": null,
                 "disable_emojis": true,
+                "disable_search": false,
                 "disable_xmlrpc": false,
                 "feed_links": true,
                 "meta_generator": "Atari 2600",
