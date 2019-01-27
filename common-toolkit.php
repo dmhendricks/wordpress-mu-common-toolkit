@@ -39,14 +39,14 @@ class CommonToolkit {
                 'environment' => 'production',
                 'environment_constant' => 'WP_ENV',
                 'environment_production' => 'production',
-                'disable_emojis' => false,
                 'admin_bar_color' => null,
+                'disable_emojis' => false,
+                'disable_xmlrpc' => false,
+                'feed_links' => true,
+                'meta_generator' => true,
                 'script_attributes' => false,
                 'shortcodes' => false,
-                'disable_xmlrpc' => false,
-                'meta_generator' => true,
-                'windows_live_writer' => true,
-                'feed_links' => true
+                'windows_live_writer' => true
             ], self::$config['common_toolkit'] );
             
             // Define environment variable

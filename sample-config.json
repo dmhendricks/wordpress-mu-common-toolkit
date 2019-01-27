@@ -3,14 +3,14 @@
                 "environment": "development",
                 "environment_constant": "WP_ENV",
                 "environment_production": "production",
-                "disable_emojis": true,
                 "admin_bar_color": null,
+                "disable_emojis": true,
+                "disable_xmlrpc": false,
+                "feed_links": true,
+                "meta_generator": "Atari 2600",
                 "script_attributes": true,
                 "shortcodes": false,
-                "disable_xmlrpc": false,
-                "meta_generator": "Atari 2600",
-                "windows_live_writer": false,
-                "feed_links": true
+                "windows_live_writer": false
         },
         "my_custom_variable": "Hello World!",
         "nested_example": {
