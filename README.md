@@ -101,6 +101,8 @@ This will also change the name of the environmental variable used to retrieve th
 
 ```php
 echo getenv( 'MY_ENVIRONMENT' ); // Result: development
+// ...or:
+echo apply_filters( 'ctk_environment', null ); // Result: development
 ```
 
 #### 2. Define `environment` Variable in Config
@@ -115,47 +117,11 @@ Getting:
 
 ```php
 echo getenv( 'WP_ENV' ); // Result: staging
+// ...or:
+echo apply_filters( 'ctk_environment', null ); // Result: staging
 ```
 
 If not defined, "production" is returned.
-
-### Special: Determining Production Mode
-
-There is a special config variable that is set dynamically named `is_production`. It compares the value of your environment (defined above) with the value of `common_toolkit/environment_production` (which defaults to "production"). In this way, you can set your production label/string value to whatever you like.
-
-Determining if in production mode using **defaults**:
-
-```php
-if( apply_filters( 'ctk_config', 'is_production' ) ) {
-   // Do something intended only for production
-} else {
-   // Do something else
-}
-```
-
-As noted above, you can change the string comparison of what is considered production in config. For example, if you wanted to use "live" instead of "production":
-
-```php
-define( 'CTK_CONFIG', [ 'environment_production' => 'live' ] );
-
-// Result: true
-define( 'WP_ENV', 'live' );
-var_dump( apply_filters( 'ctk_config', 'is_production' ) );
-
-// Result: false
-define( 'WP_ENV', 'staging' );
-var_dump( apply_filters( 'ctk_config', 'is_production' ) );
-```
-
-This special filter value is provided solely for convenience. You may, of course, do a manual comparison:
-
-```php
-if( getenv( 'WP_ENV' ) == 'production' ) { // Replace variable with value of `environment_constant`, if set
-   // Do something intended only for production
-} else {
-   // Do something else
-}
-```
 
 ### Add Attributes to Enqueued Scripts
 
@@ -192,6 +158,51 @@ $parse_uri = parse_url( 'https://example.com/?hello=world#hash );
 $parse_uri['fragment'] = 'newhash';
 $uri = \MU_Plugins\CommonToolkit::build_url( $parse_uri );
 ```
+
+## Environment Filter
+
+You can alternately retrieve the current environment using the `ctk_environment` filter:
+
+```php
+echo apply_filters( 'ctk_environment', null ); // 'production', 'staging', etc
+```
+
+You can also pass `is_production` to determine if we're currently in production more. It compares the value of your environment (defined above) with the value of `common_toolkit/environment_production` (which defaults to "production"). In this way, you can set your production label/string value to whatever you like.
+
+Determining if in production mode using **defaults**:
+
+```php
+if( apply_filters( 'ctk_environment', 'is_production' ) ) {
+   // Do something intended only for production
+} else {
+   // Do something else
+}
+```
+
+As noted above, you can change the string comparison of what is considered production in config. For example, if you wanted to use "live" instead of "production":
+
+```php
+define( 'CTK_CONFIG', [ 'environment_production' => 'live' ] );
+
+// Result: true
+define( 'WP_ENV', 'live' );
+var_dump( apply_filters( 'ctk_environment', 'is_production' ) );
+
+// Result: false
+define( 'WP_ENV', 'staging' );
+var_dump( apply_filters( 'ctk_environment', 'is_production' ) );
+```
+
+This special filter value is provided solely for convenience. You may, of course, do a manual comparison:
+
+```php
+if( getenv( 'WP_ENV' ) == 'production' ) { // Replace variable with value of `environment_constant`, if set
+   // Do something intended only for production
+} else {
+   // Do something else
+}
+```
+
 
 ## Action Hook
 

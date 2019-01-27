@@ -15,6 +15,7 @@ class CommonToolkit {
     private static $instance;
     private static $version = '0.8.0';
     protected static $config = [];
+    protected static $environment = [];
     
     public static function init() {
 
@@ -61,7 +62,12 @@ class CommonToolkit {
                 default:
                     putenv( 'WP_ENV=production' );
             }
-            self::$config['is_production'] = defined( self::get_config( 'common_toolkit/environment_constant' ) ) ? self::get_config( 'common_toolkit/environment_production' ) == getenv( self::get_config( 'common_toolkit/environment_constant' ) ) : true;
+
+            // Set variables for environment filter
+            self::$environment = [
+                'environment' => self::get_config( 'common_toolkit/environment' ),
+                'is_production' => defined( self::get_config( 'common_toolkit/environment_constant' ) ) ? self::get_config( 'common_toolkit/environment_production' ) == getenv( self::get_config( 'common_toolkit/environment_constant' ) ) : true
+            ];
 
             // Disable emoji support
             if( self::get_config( 'common_toolkit/disable_emojis' ) ) add_action( 'init', array( self::$instance, 'disable_emojis' ) );
@@ -106,6 +112,9 @@ class CommonToolkit {
 
             // Add filter to retrieve configuration values
             add_filter( 'ctk_config', array( self::$instance, 'ctk_config_filter' ) );
+
+            // Add filter to retrieve environment
+            add_filter( 'ctk_environment', array( self::$instance, 'ctk_environment_filter' ) );
 
             // Add action hook during init phase
             add_action( 'init', function() {
@@ -152,7 +161,6 @@ class CommonToolkit {
      *           var_dump( apply_filters( 'ctk_config', null ) ); // Displays all config variables
      *
      * @since 0.8.0
-     * @todo Add ability to modify config values
      */
     public static function ctk_config_filter( $key = null ) {
 
@@ -164,6 +172,25 @@ class CommonToolkit {
             default:
                 return null;
         }
+        
+    }
+
+    /**
+     * Retrieve current environment information
+     *    Usage: echo apply_filters( 'ctk_environment', null ); // Echos current environment string
+     *           var_dump( apply_filters( 'ctk_environment', 'is_production' ) ); // Returns true if in production mode
+     *
+     * @since 0.8.1
+     */
+    public static function ctk_environment_filter( $key = null ) {
+
+        if( empty( $key ) ) {
+            return self::$environment['environment'];
+        } else if( isset( self::$environment[$key] ) ) {
+            return self::$environment[$key];
+        }
+
+        return null;
         
     }
 
