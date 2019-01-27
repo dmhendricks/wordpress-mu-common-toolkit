@@ -7,13 +7,20 @@
 
 A simple [MU plugin](https://codex.wordpress.org/Must_Use_Plugins) for WordPress that adds functionality that I use on web site projects, including a [configuration registry](#getting-configuration-values).
 
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [Features](#features)
+- [Environment Filter](#environment-filter)
+- [Action Hook](#action-hook)
+- [Shortcodes](#shortcodes)
+
 ## Installation
 
 Simply copy the `common-toolkit.php` file to your `wp-content/mu-plugins` directory (create one if it does not exist).
 
-## Requirements
+### Requirements
 
-- PHP ^5.6 (via JSON config file) and PHP 7.x (via array _or_ JSON file)
+- **PHP 5.4+** (via JSON config file) and **PHP 7.x** (via array _or_ JSON file)
 - WordPress 4.7 or higher
 
 ## Configuration
