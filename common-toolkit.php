@@ -1,11 +1,11 @@
 <?php
 /**
  * Plugin Name:     Common Toolkit
+ * Plugin URI:      https://github.com/dmhendricks/wordpress-mu-common-toolkit/
  * Description:     A must use (MU) plugin for WordPress that contains helper functions and snippets.
  * Version:         0.8.0
  * Author:          Daniel M. Hendricks
  * Author URI:      https://www.danhendricks.com/
- * Original:        https://github.com/dmhendricks/wordpress-mu-common-toolkit/
  */
 
 namespace MU_Plugins;
