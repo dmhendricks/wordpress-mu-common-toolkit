@@ -5,7 +5,7 @@
 
 # WordPress Common Toolkit MU Plugin
 
-A simple [MU plugin](https://codex.wordpress.org/Must_Use_Plugins) for WordPress that adds functionality that I use on web site projects, including a configuration registry.
+A simple [MU plugin](https://codex.wordpress.org/Must_Use_Plugins) for WordPress that adds functionality that I use on web site projects, including a [configuration registry](#getting-configuration-values).
 
 ## Installation
 
@@ -13,22 +13,26 @@ Simply copy the `common-toolkit.php` file to your `wp-content/mu-plugins` direct
 
 ## Requirements
 
-- PHP ~5.6 (via JSON file) and PHP 7.x (via array or JSON file)
+- PHP ^5.6 (via JSON config file) and PHP 7.x (via array _or_ JSON file)
 - WordPress 4.7 or higher
 
 ## Configuration
 
-| **Variable**           | **Description**                                                                                                          | **Type**    | **Default**   |
-|------------------------|--------------------------------------------------------------------------------------------------------------------------|-------------|---------------|
-| `environment`          | Environment of current instance (ex: 'production', 'development', 'staging')                                             | string      | "production"  |
-| `disable_emojis`       | Remove support for emojis                                                                                                | bool        | false         |
-| `admin_bar_color`      | Change admin bar color in current environment                                                                            | string      | _null_        |
-| `script_attributes`    | Enable support for [additional attributes](#add-attributes-to-enqueued-scripts) to script tags via wp_enqueue_script()   | bool        | flase         |
-| `shortcodes`           | Enable custom [shortcodes](#shortcodes) created by this class                                                            | bool        | false         |
-| `disable_xmlrpc`       | Disable XML-RPC                                                                                                          | bool        | false         |
-| `meta_generator`       | Enable or change meta generator tags in page head and RSS feeds                                                          | bool/string | true          |
-| `windows_live_writer`  | Enable [Windows Live Writer](https://is.gd/Q6KjEQ) support                                                               | bool        | true          |
-| `feed_links`           | Include RSS feed links in page head                                                                                      | bool        | true          |
+All variables are optional.
+
+| **Variable**              | **Description**                                                                                                          | **Type**    | **Default**   |
+|---------------------------|--------------------------------------------------------------------------------------------------------------------------|-------------|---------------|
+| `environment`             | Environment of current instance (ex: 'production', 'development', 'staging')                                             | string      | "production"  |
+| `environment_constant`    | Constant used to determine environment, environmental variable name for `getenv()`.                                      | string      | "WP_ENV"      |
+| `environment_production`  | The label used to match if production environment.                                                                       | string      | "production"  |
+| `disable_emojis`          | Remove support for emojis                                                                                                | bool        | false         |
+| `admin_bar_color`         | Change admin bar color in current environment                                                                            | string      | _null_        |
+| `script_attributes`       | Enable support for [additional attributes](#add-attributes-to-enqueued-scripts) to script tags via wp_enqueue_script()   | bool        | flase         |
+| `shortcodes`              | Enable custom [shortcodes](#shortcodes) created by this class                                                            | bool        | false         |
+| `disable_xmlrpc`          | Disable XML-RPC                                                                                                          | bool        | false         |
+| `meta_generator`          | Enable or change meta generator tags in page head and RSS feeds                                                          | bool/string | true          |
+| `windows_live_writer`     | Enable [Windows Live Writer](https://is.gd/Q6KjEQ) support                                                               | bool        | true          |
+| `feed_links`              | Include RSS feed links in page head                                                                                      | bool        | true          |
 
 ### Example
 
@@ -78,6 +82,29 @@ You can add any variable you want to make available to your site's themes and pl
 
 ### WordPress Environment
 
+You can set your instance environment using the following methods (in order of precedence; defaults to "production" if not set using any of the following methods):
+
+#### 1. Define a Constant in `wp-config.php`
+
+```php
+define( 'WP_ENV', 'staging' );
+```
+
+If you wish to use a different constant name, you can set the `environment_constant` in the config:
+
+```php
+define( 'MY_ENVIRONMENT', 'development' );
+define( 'CTK_CONFIG', [ 'environment_constant' => 'MY_ENVIRONMENT' ] );
+```
+
+This will also change the name of the environmental variable used to retrieve the environment:
+
+```php
+echo getenv( 'MY_ENVIRONMENT' ); // Result: development
+```
+
+#### 2. Define `environment` Variable in Config
+
 Setting:
 
 ```php
@@ -91,6 +118,44 @@ echo getenv( 'WP_ENV' ); // Result: staging
 ```
 
 If not defined, "production" is returned.
+
+### Special: Determining Production Mode
+
+There is a special config variable that is set dynamically named `is_production`. It compares the value of your environment (defined above) with the value of `common_toolkit/environment_production` (which defaults to "production"). In this way, you can set your production label/string value to whatever you like.
+
+Determining if in production mode using **defaults**:
+
+```php
+if( apply_filters( 'ctk_config', 'is_production' ) ) {
+   // Do something intended only for production
+} else {
+   // Do something else
+}
+```
+
+As noted above, you can change the string comparison of what is considered production in config. For example, if you wanted to use "live" instead of "production":
+
+```php
+define( 'CTK_CONFIG', [ 'environment_production' => 'live' ] );
+
+// Result: true
+define( 'WP_ENV', 'live' );
+var_dump( apply_filters( 'ctk_config', 'is_production' ) );
+
+// Result: false
+define( 'WP_ENV', 'staging' );
+var_dump( apply_filters( 'ctk_config', 'is_production' ) );
+```
+
+This special filter value is provided solely for convenience. You may, of course, do a manual comparison:
+
+```php
+if( getenv( 'WP_ENV' ) == 'production' ) { // Replace variable with value of `environment_constant`, if set
+   // Do something intended only for production
+} else {
+   // Do something else
+}
+```
 
 ### Add Attributes to Enqueued Scripts
 
@@ -146,25 +211,5 @@ Current date/time: [get_datetime]
 ```
 
 See PHP's [`date()`](https://php.net/date) function for formatting options.
-
-## Future Plans
-
-- ~~Add support for PHP 5.6~~
-- ~~Add support for external config files & registry~~
-- ~~Add filter for retrieving values from config~~
-- Add check for new version releases
-- Detect [Classic Editor](https://wordpress.org/plugins/classic-editor/)/[ClassicPress](https://www.classicpress.net/)
-- Add ability to change favicons by environment
-- Custom WP Admin footer
-- Add function to test if WP Object Cache is enabled
-- Add rewrite for custom image/script URLs/CDN support
-- Hide login errors
-- Disable update notifications: core, plugins, themes or all; Option to remove for all but admins
-- Change excerpt length
-- Remove `?ver=` from specific or all scripts
-- Disable JSON REST API
-- Enable TinyMCE lower toolbar
-- Completely disable comments
-- Inject standard Google Analytics script
 
 [![Analytics](https://ga-beacon.appspot.com/UA-67333102-2/dmhendricks/wordpress-mu-common-toolkit?flat)](https://github.com/igrigorik/ga-beacon/?utm_source=github.com&utm_medium=referral&utm_content=button&utm_campaign=dmhendricks%2Fwordpress-mu-common-toolkit)

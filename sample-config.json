@@ -1,6 +1,8 @@
 {
         "common_toolkit": {
                 "environment": "development",
+                "environment_constant": "WP_ENV",
+                "environment_production": "production",
                 "disable_emojis": true,
                 "admin_bar_color": null,
                 "script_attributes": true,

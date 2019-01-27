@@ -36,7 +36,9 @@ class CommonToolkit {
 
             // Set defaults
             self::$config['common_toolkit'] = self::set_default_atts( [
-                'environment' => defined( 'WP_ENV' ) ? WP_ENV : 'production',
+                'environment' => 'production',
+                'environment_constant' => 'WP_ENV',
+                'environment_production' => 'production',
                 'disable_emojis' => false,
                 'admin_bar_color' => null,
                 'script_attributes' => false,
@@ -48,7 +50,18 @@ class CommonToolkit {
             ], self::$config['common_toolkit'] );
             
             // Define environment variable
-            if( !getenv( 'WP_ENV' ) ) putenv( 'WP_ENV=' . self::get_config( 'common_toolkit/environment' ) );
+            switch( true ) {
+                case defined( self::get_config( 'common_toolkit/environment_constant' ) ):
+                    self::$config['common_toolkit']['environment'] = constant( self::get_config( 'common_toolkit/environment_constant' ) );
+                    putenv( sprintf( '%s=%s', self::get_config( 'common_toolkit/environment_constant' ), self::get_config( 'common_toolkit/environment' ) ) );
+                    break;
+                case !empty( self::get_config( 'common_toolkit/environment' ) ):
+                    putenv( sprintf( '%s=%s', self::get_config( 'common_toolkit/environment_constant' ) ?: 'WP_ENV', self::get_config( 'common_toolkit/environment' ) ) );
+                    break;
+                default:
+                    putenv( 'WP_ENV=production' );
+            }
+            self::$config['is_production'] = defined( self::get_config( 'common_toolkit/environment_constant' ) ) ? self::get_config( 'common_toolkit/environment_production' ) == getenv( self::get_config( 'common_toolkit/environment_constant' ) ) : true;
 
             // Disable emoji support
             if( self::get_config( 'common_toolkit/disable_emojis' ) ) add_action( 'init', array( self::$instance, 'disable_emojis' ) );
@@ -105,7 +118,7 @@ class CommonToolkit {
 
     /*
      * Get configuration variable.
-     *    Usage: echo \MU_Plugins\CommonToolkit::get_config( 'common_toolkit/environment' );
+     *    Example usage: echo apply_filter( 'ctk_config', 'common_toolkit/meta_generator' );
      * 
      * @param string $key Configuration variable path to retrieve
      * @param mixed $default The default value to return if $key is not found
@@ -114,9 +127,12 @@ class CommonToolkit {
      */
     public static function get_config( $key = null, $default = null ) {
 
+        // If key not specified, return entire registry
         if ( !$key ) {
             return self::$config;
         }
+
+        // Else return $key value or null if doesn't exist
         $value = self::$config;
         foreach( explode('/', $key ) as $k ) {
             if ( !isset( $value[$k] ) ) {
