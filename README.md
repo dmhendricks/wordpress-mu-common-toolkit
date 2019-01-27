@@ -185,11 +185,11 @@ As noted above, you can change the string comparison of what is considered produ
 define( 'CTK_CONFIG', [ 'environment_production' => 'live' ] );
 
 // Result: true
-define( 'WP_ENV', 'live' );
+define( 'WP_ENV', 'live' ); // wp-config.php
 var_dump( apply_filters( 'ctk_environment', 'is_production' ) );
 
 // Result: false
-define( 'WP_ENV', 'staging' );
+define( 'WP_ENV', 'staging' ); // wp-config.php
 var_dump( apply_filters( 'ctk_environment', 'is_production' ) );
 ```
 
