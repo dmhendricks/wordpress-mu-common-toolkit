@@ -8,6 +8,7 @@
                 "disable_search": false,
                 "disable_xmlrpc": false,
                 "feed_links": true,
+                "heartbeat": null,
                 "meta_generator": "Atari 2600",
                 "script_attributes": true,
                 "shortcodes": false,

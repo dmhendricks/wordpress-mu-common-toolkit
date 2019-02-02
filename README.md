@@ -32,15 +32,16 @@ All variables are optional.
 | `environment`             | Environment of current instance (ex: 'production', 'development', 'staging')                                             | string      | "production"  |
 | `environment_constant`    | Constant used to determine environment, environmental variable name for `getenv()`.                                      | string      | "WP_ENV"      |
 | `environment_production`  | The label used to match if production environment.                                                                       | string      | "production"  |
+| `admin_bar_color`         | Change admin bar color in current environment                                                                            | string      | _null_        |
 | `disable_emojis`          | Remove support for emojis                                                                                                | bool        | false         |
 | `disable_search`          | Disable WordPress site search                                                                                            | bool        | false         |
-| `admin_bar_color`         | Change admin bar color in current environment                                                                            | string      | _null_        |
+| `disable_xmlrpc`          | Disable XML-RPC                                                                                                          | bool        | false         |
+| `feed_links`              | Include RSS feed links in page head                                                                                      | bool        | true          |
+| `heartbeat`               | Modify or disable the WordPress heartbeat. Set to integer to change, `false` to disable                                  | bool/int    | null          |
+| `meta_generator`          | Enable or change meta generator tags in page head and RSS feeds                                                          | bool/string | true          |
 | `script_attributes`       | Enable support for [additional attributes](#add-attributes-to-enqueued-scripts) to script tags via wp_enqueue_script()   | bool        | flase         |
 | `shortcodes`              | Enable custom [shortcodes](#shortcodes) created by this class                                                            | bool        | false         |
-| `disable_xmlrpc`          | Disable XML-RPC                                                                                                          | bool        | false         |
-| `meta_generator`          | Enable or change meta generator tags in page head and RSS feeds                                                          | bool/string | true          |
 | `windows_live_writer`     | Enable [Windows Live Writer](https://is.gd/Q6KjEQ) support                                                               | bool        | true          |
-| `feed_links`              | Include RSS feed links in page head                                                                                      | bool        | true          |
 
 ### Example
 

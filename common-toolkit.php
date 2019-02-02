@@ -44,6 +44,7 @@ class CommonToolkit {
                 'disable_search' => false,
                 'disable_xmlrpc' => false,
                 'feed_links' => true,
+                'heartbeat' => null,
                 'meta_generator' => true,
                 'script_attributes' => false,
                 'shortcodes' => false,
@@ -68,6 +69,13 @@ class CommonToolkit {
                 'environment' => self::get_config( 'common_toolkit/environment' ),
                 'is_production' => defined( self::get_config( 'common_toolkit/environment_constant' ) ) ? self::get_config( 'common_toolkit/environment_production' ) == getenv( self::get_config( 'common_toolkit/environment_constant' ) ) : true
             ];
+
+            // Modify or disable WordPress heartbeat
+            if( self::get_config( 'common_toolkit/heartbeat' ) === false ) { // Disable heartbeat
+                add_action( 'init', function() { wp_deregister_script( 'heartbeat' ); }, 1 );
+            } else if( intval( self::get_config( 'common_toolkit/heartbeat' ) ) ) { // Modify heartbeat
+                add_action( 'heartbeat_settings', array( self::$instance, 'modify_heartbeat' ) );
+            }
 
             // Disable emoji support
             if( self::get_config( 'common_toolkit/disable_emojis' ) ) add_action( 'init', array( self::$instance, 'disable_emojis' ) );
@@ -363,6 +371,22 @@ class CommonToolkit {
         }
 
         return $result;
+
+    }
+
+    /*
+     * Modify the WordPress heartbeat
+     *
+     * @since 0.8.0
+     * @see https://codex.wordpress.org/Function_Reference/wp_heartbeat_settings
+     */
+    public function modify_heartbeat( $settings ) {
+
+        $heartbeat = intval( self::get_config( 'common_toolkit/heartbeat' ) );
+        if( !$heartbeat ) return $settings;
+
+        $settings['interval'] = $heartbeat;
+        return $settings;
 
     }
 

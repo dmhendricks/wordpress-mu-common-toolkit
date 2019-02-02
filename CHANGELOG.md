@@ -3,6 +3,7 @@
 ### master
 
 - Fixed: Firing sequence of `common_toolkit_loaded` hook
+- Added: Ability to modify or disable WordPress heartbeat
 - Added: `ctk_environment` filter
 - Added: Ability to disable WordPress search
 - Added: Ability to define custom environment constant
