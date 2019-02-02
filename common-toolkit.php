@@ -7,7 +7,6 @@
  * Author:          Daniel M. Hendricks
  * Author URI:      https://www.danhendricks.com/
  */
-
 namespace MU_Plugins;
 
 class CommonToolkit {
@@ -30,8 +29,8 @@ class CommonToolkit {
             if( defined( 'CTK_CONFIG' ) ) {
                 if( is_array( CTK_CONFIG ) ) {
                     self::$config['common_toolkit'] = CTK_CONFIG;
-                } else if( is_string( CTK_CONFIG ) && file_exists( realpath( CTK_CONFIG ) ) ) {
-                    self::$config = @json_decode( file_get_contents( realpath( CTK_CONFIG ) ), true ) ?: [];
+                } else if( is_string( CTK_CONFIG ) && file_exists( realpath( ABSPATH . CTK_CONFIG ) ) ) {
+                    self::$config = @json_decode( file_get_contents( realpath( ABSPATH . CTK_CONFIG ) ), true ) ?: [];
                 }
             }
 
