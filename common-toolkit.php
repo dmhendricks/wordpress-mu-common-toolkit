@@ -42,6 +42,7 @@ class CommonToolkit {
                 'admin_bar_color' => null,
                 'disable_emojis' => false,
                 'disable_search' => false,
+                'disable_updates' => [],
                 'disable_xmlrpc' => false,
                 'feed_links' => true,
                 'heartbeat' => null,
@@ -70,6 +71,15 @@ class CommonToolkit {
                 'is_production' => defined( self::get_config( 'common_toolkit/environment_constant' ) ) ? self::get_config( 'common_toolkit/environment_production' ) == getenv( self::get_config( 'common_toolkit/environment_constant' ) ) : true
             ];
 
+            // Remove WordPress core, plugin and/or theme update notices
+            $disable_updates = self::get_config( 'common_toolkit/disable_updates' );
+            if( in_array( 'core', $disable_updates ) )
+                add_filter( 'pre_site_transient_update_core', array( self::$instance, 'disable_updates' ) );
+            if( in_array( 'plugin', $disable_updates ) )
+                add_filter( 'pre_site_transient_update_plugins', array( self::$instance, 'disable_updates' ) );
+            if( in_array( 'theme', $disable_updates ) )
+                add_filter( 'pre_site_transient_update_themes', array( self::$instance, 'disable_updates' ) );
+            
             // Modify or disable WordPress heartbeat
             if( self::get_config( 'common_toolkit/heartbeat' ) === false ) { // Disable heartbeat
                 add_action( 'init', function() { wp_deregister_script( 'heartbeat' ); }, 1 );
@@ -194,7 +204,7 @@ class CommonToolkit {
      *    Usage: echo apply_filters( 'ctk_environment', null ); // Echos current environment string
      *           var_dump( apply_filters( 'ctk_environment', 'is_production' ) ); // Returns true if in production mode
      *
-     * @since 0.8.1
+     * @since 0.8.0
      */
     public static function ctk_environment_filter( $key = null ) {
 
@@ -231,9 +241,22 @@ class CommonToolkit {
     }
 
     /*
+     * Remove WordPress core, plugin and/or theme update notices
+     *    Usage: define( 'CTK_CONFIG', [ 'disable_updates' => [ 'core', 'plugin', 'theme' ] ] );
+     * 
+     * @since 0.8.0
+     */
+    public function disable_updates() {
+
+        global $wp_version;
+        return (object) array( 'last_checked' => time(), 'version_checked' => $wp_version );
+    
+    }
+
+    /*
      * Disables WordPress site search and return 404
      * 
-     * @since 0.8.1
+     * @since 0.8.0
      */
     public function disable_search( $query, $error = true ) {
 

@@ -35,6 +35,7 @@ All variables are optional.
 | `admin_bar_color`         | Change admin bar color in current environment                                                                            | string      | _null_        |
 | `disable_emojis`          | Remove support for emojis                                                                                                | bool        | false         |
 | `disable_search`          | Disable WordPress site search                                                                                            | bool        | false         |
+| `disable_updates`         | Disable WordPress core, plugin and/or theme updates. Valid array values: `[ 'core', 'plugin', 'theme' ]`                 | array       | _empty_       |
 | `disable_xmlrpc`          | Disable XML-RPC                                                                                                          | bool        | false         |
 | `feed_links`              | Include RSS feed links in page head                                                                                      | bool        | true          |
 | `heartbeat`               | Modify or disable the WordPress heartbeat. Set to integer to change, `false` to disable                                  | bool/int    | null          |
