@@ -42,7 +42,7 @@ class CommonToolkit {
                 'admin_bar_color' => null,
                 'disable_emojis' => false,
                 'disable_search' => false,
-                'disable_updates' => [],
+                'disable_updates' => false,
                 'disable_xmlrpc' => false,
                 'feed_links' => true,
                 'heartbeat' => null,
@@ -72,13 +72,14 @@ class CommonToolkit {
             ];
 
             // Remove WordPress core, plugin and/or theme update notices
-            $disable_updates = self::get_config( 'common_toolkit/disable_updates' );
-            if( in_array( 'core', $disable_updates ) )
-                add_filter( 'pre_site_transient_update_core', array( self::$instance, 'disable_updates' ) );
-            if( in_array( 'plugin', $disable_updates ) )
-                add_filter( 'pre_site_transient_update_plugins', array( self::$instance, 'disable_updates' ) );
-            if( in_array( 'theme', $disable_updates ) )
-                add_filter( 'pre_site_transient_update_themes', array( self::$instance, 'disable_updates' ) );
+            if( $disable_updates = self::get_config( 'common_toolkit/disable_updates' ) ) {
+                if( $disable_updates === true || in_array( 'core', (array) $disable_updates ) )
+                    add_filter( 'pre_site_transient_update_core', array( self::$instance, 'disable_updates' ) );
+                if( $disable_updates === true || in_array( 'plugin', (array) $disable_updates ) )
+                    add_filter( 'pre_site_transient_update_plugins', array( self::$instance, 'disable_updates' ) );
+                if( $disable_updates === true || in_array( 'theme', (array) $disable_updates ) )
+                    add_filter( 'pre_site_transient_update_themes', array( self::$instance, 'disable_updates' ) );
+            }
             
             // Modify or disable WordPress heartbeat
             if( self::get_config( 'common_toolkit/heartbeat' ) === false ) { // Disable heartbeat

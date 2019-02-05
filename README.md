@@ -27,22 +27,22 @@ Simply copy the `common-toolkit.php` file to your `wp-content/mu-plugins` direct
 
 All variables are optional.
 
-| **Variable**              | **Description**                                                                                                          | **Type**    | **Default**   |
-|---------------------------|--------------------------------------------------------------------------------------------------------------------------|-------------|---------------|
-| `environment`             | Environment of current instance (ex: 'production', 'development', 'staging')                                             | string      | "production"  |
-| `environment_constant`    | Constant used to determine environment, environmental variable name for `getenv()`.                                      | string      | "WP_ENV"      |
-| `environment_production`  | The label used to match if production environment.                                                                       | string      | "production"  |
-| `admin_bar_color`         | Change admin bar color in current environment                                                                            | string      | _null_        |
-| `disable_emojis`          | Remove support for emojis                                                                                                | bool        | false         |
-| `disable_search`          | Disable WordPress site search                                                                                            | bool        | false         |
-| `disable_updates`         | Disable WordPress core, plugin and/or theme updates. Valid array values: `[ 'core', 'plugin', 'theme' ]`                 | array       | _empty_       |
-| `disable_xmlrpc`          | Disable XML-RPC                                                                                                          | bool        | false         |
-| `feed_links`              | Include RSS feed links in page head                                                                                      | bool        | true          |
-| `heartbeat`               | Modify or disable the WordPress heartbeat. Set to integer to change, `false` to disable                                  | bool/int    | null          |
-| `meta_generator`          | Enable or change meta generator tags in page head and RSS feeds                                                          | bool/string | true          |
-| `script_attributes`       | Enable support for [additional attributes](#add-attributes-to-enqueued-scripts) to script tags via wp_enqueue_script()   | bool        | flase         |
-| `shortcodes`              | Enable custom [shortcodes](#shortcodes) created by this class                                                            | bool        | false         |
-| `windows_live_writer`     | Enable [Windows Live Writer](https://is.gd/Q6KjEQ) support                                                               | bool        | true          |
+| **Variable**              | **Description**                                                                                                          | **Type**          | **Default**   |
+|---------------------------|--------------------------------------------------------------------------------------------------------------------------|-------------------|---------------|
+| `environment`             | Environment of current instance (ex: 'production', 'development', 'staging')                                             | string            | "production"  |
+| `environment_constant`    | Constant used to determine environment, environmental variable name for `getenv()`.                                      | string            | "WP_ENV"      |
+| `environment_production`  | The label used to match if production environment.                                                                       | string            | "production"  |
+| `admin_bar_color`         | Change admin bar color in current environment                                                                            | string            | _null_        |
+| `disable_emojis`          | Remove support for emojis                                                                                                | bool              | false         |
+| `disable_search`          | Disable WordPress site search                                                                                            | bool              | false         |
+| `disable_updates`         | Disable WordPress core, plugin and/or theme updates. Values: 'core', 'plugin', 'theme'; `true` for all                   | bool/string/array | false         |
+| `disable_xmlrpc`          | Disable XML-RPC                                                                                                          | bool              | false         |
+| `feed_links`              | Include RSS feed links in page head                                                                                      | bool              | true          |
+| `heartbeat`               | Modify or disable the WordPress heartbeat. Set to integer to change, `false` to disable                                  | bool/int          | null          |
+| `meta_generator`          | Enable or change meta generator tags in page head and RSS feeds                                                          | bool/string       | true          |
+| `script_attributes`       | Enable support for [additional attributes](#add-attributes-to-enqueued-scripts) to script tags via wp_enqueue_script()   | bool              | flase         |
+| `shortcodes`              | Enable custom [shortcodes](#shortcodes) created by this class                                                            | bool              | false         |
+| `windows_live_writer`     | Enable [Windows Live Writer](https://is.gd/Q6KjEQ) support                                                               | bool              | true          |
 
 ### Example
 
@@ -167,6 +167,21 @@ This function reverses the result of [`parse_url()`](http://php.net/manual/en/fu
 $parse_uri = parse_url( 'https://example.com/?hello=world#hash );
 $parse_uri['fragment'] = 'newhash';
 $uri = \MU_Plugins\CommonToolkit::build_url( $parse_uri );
+```
+
+### Disable WordPress Core, Plugin and/or Theme Updates
+
+You can disable any of the update notifications or specific. It accepts string, boolean or an array of values. Examples:
+
+```php
+// Disable all update notifications
+define( 'CTK_CONFIG', [ 'disable_updates' => true ] ); // boolean
+
+// Disable WordPress core and theme updates only (not plugins)
+define( 'CTK_CONFIG', [ 'disable_updates' => [ 'core', 'theme' ] ] ); // array
+
+// Disable only plugin updates updates
+define( 'CTK_CONFIG', [ 'disable_updates' => 'plugin' ] ); // string
 ```
 
 ## Environment Filter
