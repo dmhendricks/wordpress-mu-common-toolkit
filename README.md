@@ -68,6 +68,14 @@ Rather than using a JSON file for configuration, you can set `CTK_CONFIG` to an 
 define( 'CTK_CONFIG', [ 'disable_emojis' => true, 'admin_bar_color' => '#336699', 'script_attributes' => true, 'meta_generator' => 'Atari 2600' ] );
 ```
 
+### Caching JSON Config File
+
+If your WordPress Instance has caching enabled, you can configure this plugin to cache the contents of your configuration JSON file with a constant in `wp-config.php`:
+
+```php
+define( 'CTK_CACHE_EXPIRE', 120 ); // In seconds
+```
+
 ### Getting Configuration Values
 
 You can use the `ctk_config` filter to retrieve values from the config registry (including custom). Using [sample-config.json](https://github.com/dmhendricks/wordpress-mu-common-toolkit/blob/master/sample-config.json) as an example:

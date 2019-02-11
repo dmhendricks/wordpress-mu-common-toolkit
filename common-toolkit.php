@@ -13,10 +13,11 @@ class CommonToolkit {
 
     private static $instance;
     private static $version = '0.8.0';
+    private static $cache = [ 'key' => 'config_registry', 'group' => 'common_toolkit' ];
     protected static $config = [];
     protected static $environment = [];
     
-    public static function init() {
+    final public static function init() {
 
         if ( !isset( self::$instance ) && !( self::$instance instanceof CommonToolkit ) ) {
 
@@ -25,12 +26,14 @@ class CommonToolkit {
             // Define version constant
             if ( !defined( __CLASS__ . '\VERSION' ) ) define( __CLASS__ . '\VERSION', self::$version );
 
-            // Get configuration variables
+            // Get configuration registry
             if( defined( 'CTK_CONFIG' ) ) {
                 if( is_array( CTK_CONFIG ) ) {
                     self::$config['common_toolkit'] = CTK_CONFIG;
-                } else if( is_string( CTK_CONFIG ) && file_exists( realpath( ABSPATH . CTK_CONFIG ) ) ) {
-                    self::$config = @json_decode( file_get_contents( realpath( ABSPATH . CTK_CONFIG ) ), true ) ?: [];
+                } else if( is_string( CTK_CONFIG ) ) {
+                    self::$config = self::get_cache_object( $cache[ 'key' ], function() {
+                        return @json_decode( file_get_contents( realpath( ABSPATH . CTK_CONFIG ) ), true ) ?: [];
+                    });
                 }
             }
 
@@ -51,8 +54,8 @@ class CommonToolkit {
                 'shortcodes' => false,
                 'windows_live_writer' => true
             ], self::$config['common_toolkit'] );
-            
-            // Define environment variable
+
+            // Define environment
             switch( true ) {
                 case defined( self::get_config( 'common_toolkit/environment_constant' ) ):
                     self::$config['common_toolkit']['environment'] = constant( self::get_config( 'common_toolkit/environment_constant' ) );
@@ -152,7 +155,7 @@ class CommonToolkit {
 
     }
 
-    /*
+    /**
      * Get configuration variable.
      *    Example usage: echo apply_filter( 'ctk_config', 'common_toolkit/meta_generator' );
      * 
@@ -219,7 +222,7 @@ class CommonToolkit {
         
     }
 
-    /*
+    /**
      * Remove Emoji code in page header.
      *    Usage: define( 'CTK_CONFIG', [ 'disable_emojis' => true ] );
      * 
@@ -241,7 +244,7 @@ class CommonToolkit {
 
     }
 
-    /*
+    /**
      * Remove WordPress core, plugin and/or theme update notices
      *    Usage: define( 'CTK_CONFIG', [ 'disable_updates' => [ 'core', 'plugin', 'theme' ] ] );
      * 
@@ -254,7 +257,7 @@ class CommonToolkit {
     
     }
 
-    /*
+    /**
      * Disables WordPress site search and return 404
      * 
      * @since 0.8.0
@@ -273,7 +276,7 @@ class CommonToolkit {
 
     }
 
-    /*
+    /**
      * Set a different admin bar color color. Useful for differentiating among environnments.
      *    Usage: define( 'CTK_CONFIG', [ 'admin_bar_color' => '#336699' ] );
      * 
@@ -285,7 +288,7 @@ class CommonToolkit {
 
     }
 
-    /*
+    /**
      * Quick defer or async loading of scripts via wp_enqueue_script(). Supports other custom attributes.
      *    Usage: wp_enqueue_script( 'script-handle-async-example', get_template_directory_uri() . '/assets/js/script.js#async' );
      *           wp_enqueue_script( 'script-handle-defer-example', get_template_directory_uri() . '/assets/js/script.js#defer' );
@@ -341,7 +344,7 @@ class CommonToolkit {
         
     }
 
-    /*
+    /**
      * Build URL from array created with parse_url()
      *    Usage: $parse_uri = parse_url( 'https://example.com/?hello=world#hash );
      *           $uri = \MU_Plugins\CommonToolkit::build_url( $parse_uri );
@@ -398,7 +401,7 @@ class CommonToolkit {
 
     }
 
-    /*
+    /**
      * Modify the WordPress heartbeat
      *
      * @since 0.8.0
@@ -414,7 +417,7 @@ class CommonToolkit {
 
     }
 
-    /*
+    /**
      * Remove or modify meta generator tag.
      *
      * @since 0.7.0
@@ -437,7 +440,7 @@ class CommonToolkit {
 
     }
 
-    /*
+    /**
      * Output a formatted date in WordPress configured timezone. Defaults to curreent
      * date/time in format configured in WP Admin.
      *     Usage: Current date/time: [get_datetime]
@@ -455,7 +458,7 @@ class CommonToolkit {
         return current_time( $atts['format'] );
     }
 
-    /*
+    /**
      * Remove extra HTML tags added by DomDocument
      *
      * @since 0.7.0
@@ -468,7 +471,48 @@ class CommonToolkit {
 
     }
 
-    /*
+    /**
+     * Get/set cache object
+     *
+     * @param string $key The name of the cache key to set/retrieve
+     * @param function $callback The callback function that return the uncached value
+     * @return mixed
+     * @since 0.8.0
+     */
+    public function get_cache_object( $key, $callback ) {
+
+        $cache_expire = defined( 'CTK_CACHE_EXPIRE' ) && is_int( CTK_CACHE_EXPIRE ) ? intval( CTK_CACHE_EXPIRE ) : false;
+        if( !is_int( $cache_expire ) ) return $callback();
+
+        $result = unserialize( wp_cache_get( $key , $cache[ 'group' ], false, $cache_hit ) );
+
+        if( !$cache_hit ) {
+
+            $result = $callback();
+            wp_cache_set( $key, serialize( $result ), $cache[ 'group' ], $cache_expire );
+
+        } else {
+
+            if( is_string( $result ) && is_numeric( $result ) ) $result = intval( $result ) ? (int) $result : (float) $result;
+
+        }
+
+        return $result;
+
+    }
+
+    /**
+     * Flush the config registry cache
+     * 
+     * @since 0.8.0
+     */
+    public function delete_config_cache() {
+
+        wp_cache_delete( $cache[ 'group' ], $cache[ 'group' ] );
+        
+    }
+
+    /**
      * Magic method to return config as JSON string.
      *
      * @since 0.7.0
