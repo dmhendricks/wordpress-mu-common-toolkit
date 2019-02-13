@@ -50,6 +50,7 @@ class CommonToolkit {
                 'feed_links' => true,
                 'heartbeat' => null,
                 'hide_login_errors' => false,
+                'howdy_message' => true,
                 'meta_generator' => true,
                 'script_attributes' => false,
                 'shortcodes' => false,
@@ -144,6 +145,11 @@ class CommonToolkit {
                 add_filter( 'login_errors', array( self::$instance, 'hide_login_errors' ) );
             }
 
+            // Change or remove Howdy message in admin bar
+            if( self::get_config( 'common_toolkit/howdy_message' ) !== true ) {
+                add_filter( 'admin_bar_menu', array( self::$instance, 'admin_bar_howdy' ), 25 );
+            }
+
             // Add filter to retrieve configuration values
             add_filter( 'ctk_config', array( self::$instance, 'ctk_config_filter' ) );
 
@@ -167,7 +173,7 @@ class CommonToolkit {
      * 
      * @param string $key Configuration variable path to retrieve
      * @param mixed $default The default value to return if $key is not found
-     * @since 0.7.0
+     * @since 0.8.0
      * @see https://github.com/dmhendricks/wordpress-toolkit/blob/master/core/ConfigRegistry.php
      */
     public static function get_config( $key = null, $default = null ) {
@@ -214,7 +220,7 @@ class CommonToolkit {
      *    Usage: echo apply_filters( 'ctk_environment', null ); // Echos current environment string
      *           var_dump( apply_filters( 'ctk_environment', 'is_production' ) ); // Returns true if in production mode
      *
-     * @since 0.8.0
+     * @since 0.9.0
      */
     public static function ctk_environment_filter( $key = null ) {
 
@@ -232,7 +238,7 @@ class CommonToolkit {
      * Remove Emoji code in page header.
      *    Usage: define( 'CTK_CONFIG', [ 'disable_emojis' => true ] );
      * 
-     * @since 0.7.0
+     * @since 0.8.0
      */
     public function disable_emojis() {
 
@@ -254,7 +260,7 @@ class CommonToolkit {
      * Remove WordPress core, plugin and/or theme update notices
      *    Usage: define( 'CTK_CONFIG', [ 'disable_updates' => [ 'core', 'plugin', 'theme' ] ] );
      * 
-     * @since 0.8.0
+     * @since 0.9.0
      */
     public function disable_updates() {
 
@@ -266,7 +272,7 @@ class CommonToolkit {
     /**
      * Disables WordPress site search and return 404
      * 
-     * @since 0.8.0
+     * @since 0.9.0
      */
     public function disable_search( $query, $error = true ) {
 
@@ -286,7 +292,7 @@ class CommonToolkit {
      * Set a different admin bar color color. Useful for differentiating among environnments.
      *    Usage: define( 'CTK_CONFIG', [ 'admin_bar_color' => '#336699' ] );
      * 
-     * @since 0.7.0
+     * @since 0.8.0
      */
     public function change_admin_bar_color() {
 
@@ -300,7 +306,7 @@ class CommonToolkit {
      *           wp_enqueue_script( 'script-handle-defer-example', get_template_directory_uri() . '/assets/js/script.js#defer' );
      *           wp_enqueue_script( 'script-custom-attributes', get_template_directory_uri() . '/assets/js/script.js?custom_attribute[]=custom-element|amp-ad' );
      * 
-     * @since 0.7.0
+     * @since 0.8.0
      * @see http://php.net/manual/en/domdocument.loadhtml.php
      * @see http://php.net/manual/en/domelement.setattribute.php
      */
@@ -355,7 +361,7 @@ class CommonToolkit {
      *    Usage: $parse_uri = parse_url( 'https://example.com/?hello=world#hash );
      *           $uri = \MU_Plugins\CommonToolkit::build_url( $parse_uri );
      * 
-     * @since 0.7.0
+     * @since 0.8.0
      * @see https://stackoverflow.com/a/35207936
      */
     public static function build_url( array $parts ) {
@@ -388,7 +394,7 @@ class CommonToolkit {
      * @param array  $pairs     Entire list of supported attributes and their defaults.
      * @param array  $atts      User defined attributes in shortcode tag.
      * @return array Combined and filtered attribute list.
-     * @since 0.7.0
+     * @since 0.8.0
      */
     public static function set_default_atts( $pairs, $atts ) {
 
@@ -410,7 +416,7 @@ class CommonToolkit {
     /**
      * Modify the WordPress heartbeat
      *
-     * @since 0.8.0
+     * @since 0.9.0
      * @see https://codex.wordpress.org/Function_Reference/wp_heartbeat_settings
      */
     public function modify_heartbeat( $settings ) {
@@ -426,7 +432,7 @@ class CommonToolkit {
     /**
      * Hide login errors to mitigate brute force attacks
      *
-     * @since 0.8.0
+     * @since 0.9.0
      * @see https://codex.wordpress.org/Plugin_API/Filter_Reference/login_errors#Example
      */
     public function hide_login_errors( $error ) {
@@ -434,6 +440,8 @@ class CommonToolkit {
         global $errors;
         $err_codes = $errors->get_error_codes();
         $hide_login_errors = self::get_config( 'common_toolkit/hide_login_errors' );
+        if( is_string( $hide_login_errors ) && empty( $hide_login_errors ) ) return null;
+
         $custom_message = is_string( $hide_login_errors ) ? $hide_login_errors : '<strong>ERROR</strong>: Login failed. <a href="%s">Lost your password</a>?';
 
         // Invalid username
@@ -451,9 +459,25 @@ class CommonToolkit {
     }
 
     /**
+     * Change or remove Howdy message in admin bar
+     *
+     * @since 0.9.0
+     */
+    public function admin_bar_howdy( $wp_admin_bar ) {
+
+        $message = trim( self::get_config( 'common_toolkit/howdy_message' ) ) ?: '';
+        $my_account = $wp_admin_bar->get_node( 'my-account' );
+        $wp_admin_bar->add_node([
+            'id' => 'my-account',
+            'title' => str_replace( 'Howdy,', $message, $my_account->title )
+        ]);
+
+    }
+
+    /**
      * Remove or modify meta generator tag.
      *
-     * @since 0.7.0
+     * @since 0.8.0
      */
     public function modify_meta_generator_tags( $current, $type ) {
 
@@ -479,7 +503,7 @@ class CommonToolkit {
      *     Usage: Current date/time: [get_datetime]
      *            Copyright &copy;[get_datetime format="Y"] Your Company
      *
-     * @since 0.7.0
+     * @since 0.8.0
      * @see https://php.net/date
      */
     public function shortcode_get_datetime( $atts ) {
@@ -494,7 +518,7 @@ class CommonToolkit {
     /**
      * Remove extra HTML tags added by DomDocument
      *
-     * @since 0.7.0
+     * @since 0.8.0
      */
     private function strip_extra_dom_elements( $element ) {
 
@@ -510,7 +534,7 @@ class CommonToolkit {
      * @param string $key The name of the cache key to set/retrieve
      * @param function $callback The callback function that return the uncached value
      * @return mixed
-     * @since 0.8.0
+     * @since 0.9.0
      */
     public function get_cache_object( $key, $callback, $force = false ) {
 
@@ -550,7 +574,7 @@ class CommonToolkit {
     /**
      * Magic method to return config as JSON string.
      *
-     * @since 0.7.0
+     * @since 0.8.0
      */
     public function __toString() {
         return json_encode( self::get_config() );

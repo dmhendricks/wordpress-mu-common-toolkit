@@ -40,6 +40,7 @@ All variables are optional.
 | `feed_links`              | Include RSS feed links in page head                                                                                      | bool              | true          |
 | `heartbeat`               | Modify or disable the WordPress heartbeat. Set to integer to change, `false` to disable                                  | bool/int          | null          |
 | `hide_login_errors`       | Replaces login errors with generic "Login failed" text rather than specific reason                                       | bool/string       | null          |
+| `howdy_message`           | Change (string) or remove (false/null) Howdy message in WP admin bar                                                     | bool/string/null  | true          |
 | `meta_generator`          | Enable or change meta generator tags in page head and RSS feeds                                                          | bool/string       | false         |
 | `script_attributes`       | Enable support for [additional attributes](#add-attributes-to-enqueued-scripts) to script tags via wp_enqueue_script()   | bool              | flase         |
 | `shortcodes`              | Enable custom [shortcodes](#shortcodes) created by this class                                                            | bool              | false         |
