@@ -1,0 +1,34 @@
+{
+        "common_toolkit": {
+                "environment": "development",
+                "environment_constant": "WP_ENV",
+                "environment_production": "production",
+                "admin_bar_color": null,
+                "disable_emojis": true,
+                "disable_search": false,
+                "disable_updates": [ "core", "theme" ],
+                "disable_xmlrpc": false,
+                "feed_links": true,
+                "heartbeat": null,
+                "hide_login_errors": true,
+                "meta_generator": "Atari 2600",
+                "script_attributes": true,
+                "shortcodes": false,
+                "windows_live_writer": false
+        },
+        "my_custom_variable": "Hello World!",
+        "nested_example": {
+                "label": "A list of books",
+                "books": {
+                        "favorites": [
+                                "50 Shades of Grey",
+                                "Sam Walton: Made In America"
+                        ],
+                        "classics": [
+                                "The Great Gatsby",
+                                "Moby Dick",
+                                "War and Peace"
+                        ]
+                }
+        }
+}

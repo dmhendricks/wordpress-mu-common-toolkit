@@ -1,22 +1,23 @@
 <?php
 /**
  * Plugin Name:     Common Toolkit
+ * Plugin URI:      https://github.com/dmhendricks/wordpress-mu-common-toolkit/
  * Description:     A must use (MU) plugin for WordPress that contains helper functions and snippets.
- * Version:         1.0.0
+ * Version:         0.8.0
  * Author:          Daniel M. Hendricks
  * Author URI:      https://www.danhendricks.com/
- * Original:        https://github.com/dmhendricks/wordpress-mu-common-toolkit/
  */
-
 namespace MU_Plugins;
 
 class CommonToolkit {
 
     private static $instance;
-    private static $version = '1.0.0';
-    protected static $config;
+    private static $version = '0.8.0';
+    private static $cache = [ 'key' => 'config_registry', 'group' => 'common_toolkit' ];
+    protected static $config = [];
+    protected static $environment = [];
     
-    public static function init() {
+    final public static function init() {
 
         if ( !isset( self::$instance ) && !( self::$instance instanceof CommonToolkit ) ) {
 
@@ -25,93 +26,213 @@ class CommonToolkit {
             // Define version constant
             if ( !defined( __CLASS__ . '\VERSION' ) ) define( __CLASS__ . '\VERSION', self::$version );
 
-            // Set configuration
-            self::$config = self::set_default_atts( [
-                'environment' => defined( 'WP_ENV' ) ? WP_ENV : 'production',
-                'disable_emojis' => false,
+            // Get configuration registry
+            if( defined( 'CTK_CONFIG' ) ) {
+                if( is_array( CTK_CONFIG ) ) {
+                    self::$config['common_toolkit'] = CTK_CONFIG;
+                } else if( is_string( CTK_CONFIG ) ) {
+                    self::$config = self::get_cache_object( $cache[ 'key' ], function() {
+                        return @json_decode( file_get_contents( realpath( ABSPATH . CTK_CONFIG ) ), true ) ?: [];
+                    }, true);
+                }
+            }
+
+            // Set defaults
+            self::$config['common_toolkit'] = self::set_default_atts( [
+                'environment' => 'production',
+                'environment_constant' => 'WP_ENV',
+                'environment_production' => 'production',
                 'admin_bar_color' => null,
+                'disable_emojis' => false,
+                'disable_search' => false,
+                'disable_updates' => false,
+                'disable_xmlrpc' => false,
+                'feed_links' => true,
+                'heartbeat' => null,
+                'hide_login_errors' => false,
+                'meta_generator' => true,
                 'script_attributes' => false,
                 'shortcodes' => false,
-                'disable_xmlrpc' => false,
-                'meta_generator' => true,
-                'windows_live_writer' => true,
-                'feed_links' => true
-            ], defined( 'CTK_CONFIG' ) && is_array( CTK_CONFIG ) ? CTK_CONFIG : [] );
+                'windows_live_writer' => true
+            ], self::$config['common_toolkit'] );
+
+            // Define environment
+            switch( true ) {
+                case defined( self::get_config( 'common_toolkit/environment_constant' ) ):
+                    self::$config['common_toolkit']['environment'] = constant( self::get_config( 'common_toolkit/environment_constant' ) );
+                    putenv( sprintf( '%s=%s', self::get_config( 'common_toolkit/environment_constant' ), self::get_config( 'common_toolkit/environment' ) ) );
+                    break;
+                case !empty( self::get_config( 'common_toolkit/environment' ) ):
+                    putenv( sprintf( '%s=%s', self::get_config( 'common_toolkit/environment_constant' ) ?: 'WP_ENV', self::get_config( 'common_toolkit/environment' ) ) );
+                    break;
+                default:
+                    putenv( 'WP_ENV=production' );
+            }
+
+            // Set variables for environment filter
+            self::$environment = [
+                'environment' => self::get_config( 'common_toolkit/environment' ),
+                'is_production' => defined( self::get_config( 'common_toolkit/environment_constant' ) ) ? self::get_config( 'common_toolkit/environment_production' ) == getenv( self::get_config( 'common_toolkit/environment_constant' ) ) : true
+            ];
+
+            // Remove WordPress core, plugin and/or theme update notices
+            if( $disable_updates = self::get_config( 'common_toolkit/disable_updates' ) ) {
+                if( $disable_updates === true || in_array( 'core', (array) $disable_updates ) )
+                    add_filter( 'pre_site_transient_update_core', array( self::$instance, 'disable_updates' ) );
+                if( $disable_updates === true || in_array( 'plugin', (array) $disable_updates ) )
+                    add_filter( 'pre_site_transient_update_plugins', array( self::$instance, 'disable_updates' ) );
+                if( $disable_updates === true || in_array( 'theme', (array) $disable_updates ) )
+                    add_filter( 'pre_site_transient_update_themes', array( self::$instance, 'disable_updates' ) );
+            }
             
-            // Define environment variable
-            putenv( 'WP_ENV=' . self::get_config( 'environment' ) );
+            // Modify or disable WordPress heartbeat
+            if( self::get_config( 'common_toolkit/heartbeat' ) === false ) { // Disable heartbeat
+                add_action( 'init', function() { wp_deregister_script( 'heartbeat' ); }, 1 );
+            } else if( intval( self::get_config( 'common_toolkit/heartbeat' ) ) ) { // Modify heartbeat
+                add_action( 'heartbeat_settings', array( self::$instance, 'modify_heartbeat' ) );
+            }
 
             // Disable emoji support
-            if( self::get_config( 'disable_emojis' ) ) add_action( 'init', array( __CLASS__, 'disable_emojis' ) );
+            if( self::get_config( 'common_toolkit/disable_emojis' ) ) add_action( 'init', array( self::$instance, 'disable_emojis' ) );
+
+            // Disable search
+            if( self::get_config( 'common_toolkit/disable_search' ) ) {
+                add_action( 'parse_query', array( self::$instance, 'disable_search' ) );
+                add_action( 'get_search_form', '__return_null' );
+            }
 
             // Change admin bar color
-            if( self::get_config( 'admin_bar_color' ) ) {
-                add_action( 'wp_head', array( __CLASS__, 'change_admin_bar_color' ) );
-                add_action( 'admin_head', array( __CLASS__, 'change_admin_bar_color' ) );
+            if( self::get_config( 'common_toolkit/admin_bar_color' ) ) {
+                add_action( 'wp_head', array( self::$instance, 'change_admin_bar_color' ) );
+                add_action( 'admin_head', array( self::$instance, 'change_admin_bar_color' ) );
             }
 
             // Add custom shortcodes
-            if( self::get_config( 'shortcodes' ) ) {
-                if( !shortcode_exists( 'get_datetime' ) ) add_shortcode( 'get_datetime', array( __CLASS__, 'shortcode_get_datetime' ) );
+            if( self::get_config( 'common_toolkit/shortcodes' ) ) {
+                if( !shortcode_exists( 'get_datetime' ) ) add_shortcode( 'get_datetime', array( self::$instance, 'shortcode_get_datetime' ) );
             }
 
             // Disable XML-RPC & RSD
-            if( self::get_config( 'disable_xmlrpc' ) ) {
+            if( self::get_config( 'common_toolkit/disable_xmlrpc' ) ) {
                 add_filter( 'xmlrpc_enabled', '__return_false' );
                 remove_action( 'wp_head', 'rsd_link' );
             }
 
             // Remove Windows Live Writer tag
-            if( !self::get_config( 'windows_live_writer' ) ) remove_action( 'wp_head', 'wlwmanifest_link' );
+            if( !self::get_config( 'common_toolkit/windows_live_writer' ) ) remove_action( 'wp_head', 'wlwmanifest_link' );
 
 
             // Remove or modify meta generator tags in page head and RSS feeds
-            if( self::get_config( 'meta_generator' ) === false ) {
+            if( self::get_config( 'common_toolkit/meta_generator' ) === false ) {
                 remove_action( 'wp_head', 'wp_generator' );
             }
-            add_filter( 'the_generator', array( __CLASS__, 'modify_meta_generator_tags' ), 10, 2 );
+            add_filter( 'the_generator', array( self::$instance, 'modify_meta_generator_tags' ), 10, 2 );
 
             // Remove RSS feed links
-            if( !self::get_config( 'feed_links' ) ) {
+            if( !self::get_config( 'common_toolkit/feed_links' ) ) {
                 remove_action( 'wp_head', 'feed_links', 2 );
                 remove_action( 'wp_head', 'feed_links_extra', 3 );
             }
 
             // Defer/Async Scripts
-            if( !self::get_config( 'script_attributes' ) ) {
-                add_filter( 'script_loader_tag', array( __CLASS__, 'defer_async_scripts' ), 10, 3 );
+            if( self::get_config( 'common_toolkit/script_attributes' ) ) {
+                add_filter( 'script_loader_tag', array( self::$instance, 'defer_async_scripts' ), 10, 3 );
             }
 
+            // Hide login errors
+            if( self::get_config( 'common_toolkit/hide_login_errors' ) ) {
+                add_filter( 'login_errors', array( self::$instance, 'hide_login_errors' ) );
+            }
+
+            // Add filter to retrieve configuration values
+            add_filter( 'ctk_config', array( self::$instance, 'ctk_config_filter' ) );
+
+            // Add filter to retrieve environment
+            add_filter( 'ctk_environment', array( self::$instance, 'ctk_environment_filter' ) );
+
+            // Add action hook during init phase
+            add_action( 'init', function() {
+                do_action( 'common_toolkit_loaded' );
+            });
+            
         }
 
         return self::$instance;
 
     }
 
-    /*
+    /**
      * Get configuration variable.
-     *    Usage: echo \MU_Plugins\CommonToolkit::get_config( 'environment' );
+     *    Example usage: echo apply_filter( 'ctk_config', 'common_toolkit/meta_generator' );
      * 
-     * @since 1.0.0
+     * @param string $key Configuration variable path to retrieve
+     * @param mixed $default The default value to return if $key is not found
+     * @since 0.7.0
+     * @see https://github.com/dmhendricks/wordpress-toolkit/blob/master/core/ConfigRegistry.php
      */
-    public static function get_config( $key = null ) {
+    public static function get_config( $key = null, $default = null ) {
+
+        // If key not specified, return entire registry
+        if ( !$key ) {
+            return self::$config;
+        }
+
+        // Else return $key value or null if doesn't exist
+        $value = self::$config;
+        foreach( explode('/', $key ) as $k ) {
+            if ( !isset( $value[$k] ) ) {
+                return $default;
+            }
+            $value = &$value[$k];
+        }
+        return $value;
+
+    }
+
+    /**
+     * Filter to retrieve configuration values
+     *    Usage: echo apply_filters( 'ctk_config', 'disable_xmlrpc' ); // Echos value of 'disable_xmlrpc'
+     *           var_dump( apply_filters( 'ctk_config', null ) ); // Displays all config variables
+     *
+     * @since 0.8.0
+     */
+    public static function ctk_config_filter( $key = null ) {
 
         switch( true ) {
             case !$key:
-                return self::$config;
-            case isset( self::$config[$key] ):
-                return self::$config[$key];
+                return self::get_config();
+            case self::get_config( $key ) !== null:
+                return self::get_config( $key );
             default:
                 return null;
         }
         
     }
 
-    /*
+    /**
+     * Retrieve current environment information
+     *    Usage: echo apply_filters( 'ctk_environment', null ); // Echos current environment string
+     *           var_dump( apply_filters( 'ctk_environment', 'is_production' ) ); // Returns true if in production mode
+     *
+     * @since 0.8.0
+     */
+    public static function ctk_environment_filter( $key = null ) {
+
+        if( empty( $key ) ) {
+            return self::$environment['environment'];
+        } else if( isset( self::$environment[$key] ) ) {
+            return self::$environment[$key];
+        }
+
+        return null;
+        
+    }
+
+    /**
      * Remove Emoji code in page header.
      *    Usage: define( 'CTK_CONFIG', [ 'disable_emojis' => true ] );
      * 
-     * @since 1.0.0
+     * @since 0.7.0
      */
     public function disable_emojis() {
 
@@ -129,11 +250,43 @@ class CommonToolkit {
 
     }
 
-    /*
+    /**
+     * Remove WordPress core, plugin and/or theme update notices
+     *    Usage: define( 'CTK_CONFIG', [ 'disable_updates' => [ 'core', 'plugin', 'theme' ] ] );
+     * 
+     * @since 0.8.0
+     */
+    public function disable_updates() {
+
+        global $wp_version;
+        return (object) array( 'last_checked' => time(), 'version_checked' => $wp_version );
+    
+    }
+
+    /**
+     * Disables WordPress site search and return 404
+     * 
+     * @since 0.8.0
+     */
+    public function disable_search( $query, $error = true ) {
+
+        if ( is_search() ) {
+
+            $query->is_search = false;
+            $query->query_vars['s'] = false;
+            $query->query['s'] = false;
+            
+            if ( $error == true ) $query->is_404 = true;
+
+        }
+
+    }
+
+    /**
      * Set a different admin bar color color. Useful for differentiating among environnments.
      *    Usage: define( 'CTK_CONFIG', [ 'admin_bar_color' => '#336699' ] );
      * 
-     * @since 1.0.0
+     * @since 0.7.0
      */
     public function change_admin_bar_color() {
 
@@ -141,13 +294,13 @@ class CommonToolkit {
 
     }
 
-    /*
+    /**
      * Quick defer or async loading of scripts via wp_enqueue_script(). Supports other custom attributes.
      *    Usage: wp_enqueue_script( 'script-handle-async-example', get_template_directory_uri() . '/assets/js/script.js#async' );
      *           wp_enqueue_script( 'script-handle-defer-example', get_template_directory_uri() . '/assets/js/script.js#defer' );
      *           wp_enqueue_script( 'script-custom-attributes', get_template_directory_uri() . '/assets/js/script.js?custom_attribute[]=custom-element|amp-ad' );
      * 
-     * @since 1.0.0
+     * @since 0.7.0
      * @see http://php.net/manual/en/domdocument.loadhtml.php
      * @see http://php.net/manual/en/domelement.setattribute.php
      */
@@ -169,8 +322,7 @@ class CommonToolkit {
         if( !$link instanceof \DOMNodeList || !$link->length ) return $tag;
 
         // Remove extra DOM tags
-        $dom->removeChild( $dom->firstChild );
-        $dom->replaceChild( $dom->firstChild->firstChild->firstChild, $dom->firstChild );
+        $dom = self::strip_extra_dom_elements( $dom );
 
         // Add async/defer attribute
         if( isset( $parsed_url['fragment'] ) && $parsed_url['fragment'] == 'defer' || $parsed_url['fragment'] == 'async' ) {
@@ -198,12 +350,12 @@ class CommonToolkit {
         
     }
 
-    /*
+    /**
      * Build URL from array created with parse_url()
      *    Usage: $parse_uri = parse_url( 'https://example.com/?hello=world#hash );
      *           $uri = \MU_Plugins\CommonToolkit::build_url( $parse_uri );
      * 
-     * @since 1.0.0
+     * @since 0.7.0
      * @see https://stackoverflow.com/a/35207936
      */
     public static function build_url( array $parts ) {
@@ -236,7 +388,7 @@ class CommonToolkit {
      * @param array  $pairs     Entire list of supported attributes and their defaults.
      * @param array  $atts      User defined attributes in shortcode tag.
      * @return array Combined and filtered attribute list.
-     * @since 1.0.0
+     * @since 0.7.0
      */
     public static function set_default_atts( $pairs, $atts ) {
 
@@ -255,43 +407,155 @@ class CommonToolkit {
 
     }
 
-    /*
+    /**
+     * Modify the WordPress heartbeat
+     *
+     * @since 0.8.0
+     * @see https://codex.wordpress.org/Function_Reference/wp_heartbeat_settings
+     */
+    public function modify_heartbeat( $settings ) {
+
+        $heartbeat = intval( self::get_config( 'common_toolkit/heartbeat' ) );
+        if( !$heartbeat ) return $settings;
+
+        $settings['interval'] = $heartbeat;
+        return $settings;
+
+    }
+
+    /**
+     * Hide login errors to mitigate brute force attacks
+     *
+     * @since 0.8.0
+     * @see https://codex.wordpress.org/Plugin_API/Filter_Reference/login_errors#Example
+     */
+    public function hide_login_errors( $error ) {
+
+        global $errors;
+        $err_codes = $errors->get_error_codes();
+        $hide_login_errors = self::get_config( 'common_toolkit/hide_login_errors' );
+        $custom_message = is_string( $hide_login_errors ) ? $hide_login_errors : '<strong>ERROR</strong>: Login failed. <a href="%s">Lost your password</a>?';
+
+        // Invalid username
+        if( in_array( 'invalid_username', $err_codes ) ) {
+            $error = $custom_message;
+        }
+
+        // Incorrect password
+        if( in_array( 'incorrect_password', $err_codes ) ) {
+            $error = $custom_message;
+        }
+
+        return $error;
+
+    }
+
+    /**
      * Remove or modify meta generator tag.
      *
-     * @since 1.0.0
+     * @since 0.7.0
      */
     public function modify_meta_generator_tags( $current, $type ) {
 
-        $meta_generator = self::get_config( 'meta_generator' );
+        $meta_generator = self::get_config( 'common_toolkit/meta_generator' );
         switch( true ) {
             case $meta_generator === true:
                 return $current;
             case is_string( $meta_generator ):
-                return $meta_generator;
+                if( strpos( $current, '<generator>' ) !== false ) {
+                    return sprintf( '<generator>%s</generator>', $meta_generator );
+                } else {
+                    return sprintf( '<meta name="generator" content="%s" />', $meta_generator );
+                }
             default:
                 return '';
         }
 
     }
 
-    /*
+    /**
      * Output a formatted date in WordPress configured timezone. Defaults to curreent
-     * date/time in MySQL format.
+     * date/time in format configured in WP Admin.
      *     Usage: Current date/time: [get_datetime]
      *            Copyright &copy;[get_datetime format="Y"] Your Company
      *
-     * @since 1.0.0
+     * @since 0.7.0
      * @see https://php.net/date
      */
     public function shortcode_get_datetime( $atts ) {
 
         $atts = shortcode_atts( [
-            'format' => 'mysql'
+            'format' => get_option( 'date_format' ) . ' ' . get_option( 'time_format' )
         ], $atts, 'get_datetime' );
       
         return current_time( $atts['format'] );
     }
-    
+
+    /**
+     * Remove extra HTML tags added by DomDocument
+     *
+     * @since 0.7.0
+     */
+    private function strip_extra_dom_elements( $element ) {
+
+        $element->removeChild( $element->firstChild );
+        $element->replaceChild( $element->firstChild->firstChild->firstChild, $element->firstChild );
+        return $element;
+
+    }
+
+    /**
+     * Get/set cache object
+     *
+     * @param string $key The name of the cache key to set/retrieve
+     * @param function $callback The callback function that return the uncached value
+     * @return mixed
+     * @since 0.8.0
+     */
+    public function get_cache_object( $key, $callback, $force = false ) {
+
+        if( $force ) return $callback();
+
+        $cache_expire = defined( 'CTK_CACHE_EXPIRE' ) && is_int( CTK_CACHE_EXPIRE ) ? intval( CTK_CACHE_EXPIRE ) : false;
+        if( !is_int( $cache_expire ) ) return $callback();
+
+        $result = unserialize( wp_cache_get( $key, $cache[ 'group' ], false, $cache_hit ) );
+
+        if( !$cache_hit ) {
+
+            $result = $callback();
+            wp_cache_set( $key, serialize( $result ), $cache[ 'group' ], $cache_expire );
+
+        } else {
+
+            if( is_string( $result ) && is_numeric( $result ) ) $result = intval( $result ) ? (int) $result : (float) $result;
+
+        }
+
+        return $result;
+
+    }
+
+    /**
+     * Flush the config registry cache
+     * 
+     * @since 0.8.0
+     */
+    public function delete_config_cache() {
+
+        wp_cache_delete( $cache[ 'group' ], $cache[ 'group' ] );
+        
+    }
+
+    /**
+     * Magic method to return config as JSON string.
+     *
+     * @since 0.7.0
+     */
+    public function __toString() {
+        return json_encode( self::get_config() );
+    }
+
 }
 
 CommonToolkit::init();
