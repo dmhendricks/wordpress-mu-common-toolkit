@@ -9,7 +9,9 @@ A simple [MU plugin](https://codex.wordpress.org/Must_Use_Plugins) for WordPress
 
 - [Installation](#installation)
 - [Configuration](#configuration)
-- [Features](#features)
+	- [Sample](#sample)
+	- [Caching JSON Config File](#caching-json-config-file)
+- [Usage Examples](#usage-examples)
 - [Environment Filter](#environment-filter)
 - [Action Hook](#action-hook)
 - [Shortcodes](#shortcodes)
@@ -35,18 +37,18 @@ All variables are optional.
 | `admin_bar_color`         | Change admin bar color in current environment                                                                            | string            | _null_        |
 | `disable_emojis`          | Remove support for emojis                                                                                                | bool              | false         |
 | `disable_search`          | Disable WordPress site search                                                                                            | bool              | false         |
-| `disable_updates`         | Disable WordPress core, plugin and/or theme updates. Values: 'core', 'plugin', 'theme'; `true` for all                   | bool/string/array | false         |
+| `disable_updates`         | Disable WordPress core, plugin and/or theme updates. Values: _core_, _plugin_, _theme_; `true` for all                   | bool/string/array | false         |
 | `disable_xmlrpc`          | Disable XML-RPC                                                                                                          | bool              | false         |
 | `feed_links`              | Include RSS feed links in page head                                                                                      | bool              | true          |
-| `heartbeat`               | Modify or disable the WordPress heartbeat. Set to integer to change, `false` to disable                                  | bool/int          | null          |
-| `hide_login_errors`       | Replaces login errors with generic "Login failed" text rather than specific reason                                       | bool/string       | null          |
-| `howdy_message`           | Change (string) or remove (false/null) Howdy message in WP admin bar                                                     | bool/string/null  | true          |
+| `heartbeat`               | Modify or disable the WordPress heartbeat. Set to integer to change, `false` to disable                                  | bool/int          | _null_        |
+| `set_login_errors`        | Hide or change login error messages to mitigate brute force attacks and username phishing                                | bool/string       | _null_        |
+| `howdy_message`           | Change (string) or remove (`false`/_null_) Howdy message in WP admin bar                                                 | bool/string/null  | true          |
 | `meta_generator`          | Enable or change meta generator tags in page head and RSS feeds                                                          | bool/string       | false         |
 | `script_attributes`       | Enable support for [additional attributes](#add-attributes-to-enqueued-scripts) to script tags via wp_enqueue_script()   | bool              | flase         |
 | `shortcodes`              | Enable custom [shortcodes](#shortcodes) created by this class                                                            | bool              | false         |
 | `windows_live_writer`     | Enable [Windows Live Writer](https://is.gd/Q6KjEQ) support                                                               | bool              | true          |
 
-### Example
+### Sample
 
 #### Via Configuration File (PHP 5.6 or higher)
 
@@ -98,7 +100,7 @@ $config = apply_filter( 'ctk_config', null );
 
 You can add any variable you want to make available to your site's themes and plugins.
 
-## Features
+## Usage Examples
 
 ### WordPress Environment
 
@@ -192,6 +194,23 @@ define( 'CTK_CONFIG', [ 'disable_updates' => [ 'core', 'theme' ] ] ); // array
 
 // Disable only plugin updates updates
 define( 'CTK_CONFIG', [ 'disable_updates' => 'plugin' ] ); // string
+```
+
+## Hide or Change Login Errors
+
+To help prevent user enumeration/phishing for brute for attacks, you can change the WordPress login errors to something more generic by defining `set_login_errors`. This value can be a string or boolean:
+
+| **Value**  | **Result**                                                                                                 |
+|---------------------------|---------------------------------------------------------------------------------------------|
+| _null_     | Leaves the default WordPress messages in place                                                             |
+| `false`    | Hide/disables login error messages completely                                                              |
+| `true`     | Changes the login messages to a generic "Login failed." (English only)                                     |
+| _string_   | Changes the login message to your own string, particularly useful if your default language is not English. |
+
+:pushpin: You can use `%s` in your string, which will be replaced with the reset password URL. Example:
+
+```php
+define( 'CTK_CONFIG', [ 'set_login_errors' => '<strong>ERROR</strong>: Invalid credentials. <a href="%s">Lost your password</a>?' ] );
 ```
 
 ## Environment Filter

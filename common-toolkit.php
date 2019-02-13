@@ -49,7 +49,7 @@ class CommonToolkit {
                 'disable_xmlrpc' => false,
                 'feed_links' => true,
                 'heartbeat' => null,
-                'hide_login_errors' => false,
+                'set_login_errors' => null,
                 'howdy_message' => true,
                 'meta_generator' => true,
                 'script_attributes' => false,
@@ -141,8 +141,8 @@ class CommonToolkit {
             }
 
             // Hide login errors
-            if( self::get_config( 'common_toolkit/hide_login_errors' ) ) {
-                add_filter( 'login_errors', array( self::$instance, 'hide_login_errors' ) );
+            if( self::get_config( 'common_toolkit/set_login_errors' ) !== null ) {
+                add_filter( 'login_errors', array( self::$instance, 'set_login_errors' ) );
             }
 
             // Change or remove Howdy message in admin bar
@@ -430,19 +430,19 @@ class CommonToolkit {
     }
 
     /**
-     * Hide login errors to mitigate brute force attacks
+     * Change or hide login errors to mitigate brute force attacks
      *
      * @since 0.9.0
      * @see https://codex.wordpress.org/Plugin_API/Filter_Reference/login_errors#Example
      */
-    public function hide_login_errors( $error ) {
+    public function set_login_errors( $error ) {
 
         global $errors;
         $err_codes = $errors->get_error_codes();
-        $hide_login_errors = self::get_config( 'common_toolkit/hide_login_errors' );
-        if( is_string( $hide_login_errors ) && empty( $hide_login_errors ) ) return null;
+        $login_errors = self::get_config( 'common_toolkit/set_login_errors' );
+        if( ( is_string( $login_errors ) && empty( $login_errors ) ) || !$login_errors ) return null;
 
-        $custom_message = is_string( $hide_login_errors ) ? $hide_login_errors : '<strong>ERROR</strong>: Login failed. <a href="%s">Lost your password</a>?';
+        $custom_message = is_string( $login_errors ) ? $login_errors : '<strong>ERROR</strong>: Login failed. <a href="%s">Lost your password</a>?';
 
         // Invalid username
         if( in_array( 'invalid_username', $err_codes ) ) {
