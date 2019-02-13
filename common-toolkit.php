@@ -33,7 +33,7 @@ class CommonToolkit {
                 } else if( is_string( CTK_CONFIG ) ) {
                     self::$config = self::get_cache_object( $cache[ 'key' ], function() {
                         return @json_decode( file_get_contents( realpath( ABSPATH . CTK_CONFIG ) ), true ) ?: [];
-                    }, true);
+                    });
                 }
             }
 
