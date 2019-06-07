@@ -3,7 +3,7 @@
  * Plugin Name:     Common Toolkit
  * Plugin URI:      https://github.com/dmhendricks/wordpress-mu-common-toolkit/
  * Description:     A must use (MU) plugin for WordPress that contains helper functions and snippets.
- * Version:         0.8.0
+ * Version:         0.9.0
  * Author:          Daniel M. Hendricks
  * Author URI:      https://www.danhendricks.com/
  */
@@ -12,7 +12,7 @@ namespace MU_Plugins;
 class CommonToolkit {
 
     private static $instance;
-    private static $version = '0.8.0';
+    private static $version = '0.9.0';
     private static $cache = [ 'key' => 'config_registry', 'group' => 'common_toolkit' ];
     protected static $config = [];
     protected static $environment = [];
@@ -31,7 +31,7 @@ class CommonToolkit {
                 if( is_array( CTK_CONFIG ) ) {
                     self::$config['common_toolkit'] = CTK_CONFIG;
                 } else if( is_string( CTK_CONFIG ) ) {
-                    self::$config = self::get_cache_object( $cache[ 'key' ], function() {
+                    self::$config = self::get_cache_object( self::$cache[ 'key' ], function() {
                         return @json_decode( file_get_contents( realpath( ABSPATH . CTK_CONFIG ) ), true ) ?: [];
                     });
                 }
@@ -240,7 +240,7 @@ class CommonToolkit {
      * 
      * @since 0.8.0
      */
-    public function disable_emojis() {
+    public static function disable_emojis() {
 
         remove_action( 'admin_print_styles', 'print_emoji_styles' );
         remove_action( 'wp_head', 'print_emoji_detection_script', 7 );
@@ -262,7 +262,7 @@ class CommonToolkit {
      * 
      * @since 0.9.0
      */
-    public function disable_updates() {
+    public static function disable_updates() {
 
         global $wp_version;
         return (object) array( 'last_checked' => time(), 'version_checked' => $wp_version );
@@ -274,7 +274,7 @@ class CommonToolkit {
      * 
      * @since 0.9.0
      */
-    public function disable_search( $query, $error = true ) {
+    public static function disable_search( $query, $error = true ) {
 
         if ( is_search() ) {
 
@@ -294,7 +294,7 @@ class CommonToolkit {
      * 
      * @since 0.8.0
      */
-    public function change_admin_bar_color() {
+    public static function change_admin_bar_color() {
 
         printf( '<style type="text/css">#wpadminbar { background: %s; ?> !important; }</style>', CTK_CONFIG['admin_bar_color'] );
 
@@ -310,7 +310,7 @@ class CommonToolkit {
      * @see http://php.net/manual/en/domdocument.loadhtml.php
      * @see http://php.net/manual/en/domelement.setattribute.php
      */
-    public function defer_async_scripts( $tag, $handle, $src ) {
+    public static function defer_async_scripts( $tag, $handle, $src ) {
 
         // Return if no modification needed
         if( !strpos( $src, '#async' ) && !strpos( $src, '#defer' ) && !strpos( $src, 'custom_attribute' ) ) return $tag;
@@ -419,7 +419,7 @@ class CommonToolkit {
      * @since 0.9.0
      * @see https://codex.wordpress.org/Function_Reference/wp_heartbeat_settings
      */
-    public function modify_heartbeat( $settings ) {
+    public static function modify_heartbeat( $settings ) {
 
         $heartbeat = intval( self::get_config( 'common_toolkit/heartbeat' ) );
         if( !$heartbeat ) return $settings;
@@ -435,7 +435,7 @@ class CommonToolkit {
      * @since 0.9.0
      * @see https://codex.wordpress.org/Plugin_API/Filter_Reference/login_errors#Example
      */
-    public function set_login_errors( $error ) {
+    public static function set_login_errors( $error ) {
 
         global $errors;
         $err_codes = $errors->get_error_codes();
@@ -463,7 +463,7 @@ class CommonToolkit {
      *
      * @since 0.9.0
      */
-    public function admin_bar_howdy( $wp_admin_bar ) {
+    public static function admin_bar_howdy( $wp_admin_bar ) {
 
         $message = trim( self::get_config( 'common_toolkit/howdy_message' ) ) ?: '';
         $my_account = $wp_admin_bar->get_node( 'my-account' );
@@ -479,7 +479,7 @@ class CommonToolkit {
      *
      * @since 0.8.0
      */
-    public function modify_meta_generator_tags( $current, $type ) {
+    public static function modify_meta_generator_tags( $current, $type ) {
 
         $meta_generator = self::get_config( 'common_toolkit/meta_generator' );
         switch( true ) {
@@ -506,7 +506,7 @@ class CommonToolkit {
      * @since 0.8.0
      * @see https://php.net/date
      */
-    public function shortcode_get_datetime( $atts ) {
+    public static function shortcode_get_datetime( $atts ) {
 
         $atts = shortcode_atts( [
             'format' => get_option( 'date_format' ) . ' ' . get_option( 'time_format' )
@@ -536,19 +536,19 @@ class CommonToolkit {
      * @return mixed
      * @since 0.9.0
      */
-    public function get_cache_object( $key, $callback, $force = false ) {
+    public static function get_cache_object( $key, $callback, $force = false ) {
 
         if( $force ) return $callback();
 
         $cache_expire = defined( 'CTK_CACHE_EXPIRE' ) && is_int( CTK_CACHE_EXPIRE ) ? intval( CTK_CACHE_EXPIRE ) : false;
         if( !is_int( $cache_expire ) ) return $callback();
 
-        $result = unserialize( wp_cache_get( $key, $cache[ 'group' ], false, $cache_hit ) );
+        $result = unserialize( wp_cache_get( $key, self::$cache[ 'group' ], false, $cache_hit ) );
 
         if( !$cache_hit ) {
 
             $result = $callback();
-            wp_cache_set( $key, serialize( $result ), $cache[ 'group' ], $cache_expire );
+            wp_cache_set( $key, serialize( $result ), self::$cache[ 'group' ], $cache_expire );
 
         } else {
 
@@ -565,9 +565,9 @@ class CommonToolkit {
      * 
      * @since 0.8.0
      */
-    public function delete_config_cache() {
+    public static function delete_config_cache() {
 
-        wp_cache_delete( $cache[ 'group' ], $cache[ 'group' ] );
+        wp_cache_delete( self::$cache[ 'group' ], self::$cache[ 'group' ] );
         
     }
 

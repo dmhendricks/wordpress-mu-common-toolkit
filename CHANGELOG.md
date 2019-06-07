@@ -1,8 +1,9 @@
 # Changelog
 
-### master
+### 0.9.0
 
 - Fixed: Firing sequence of `common_toolkit_loaded` hook
+- Fixed: Non-static method should not be called statically
 - Added: `ctk_environment` filter
 - Added: Ability to change or remove Howdy from admin bar
 - Added: Ability to change/remove login errors
