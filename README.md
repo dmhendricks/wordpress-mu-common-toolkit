@@ -16,6 +16,12 @@ A simple [MU plugin](https://codex.wordpress.org/Must_Use_Plugins) for WordPress
 - [Action Hook](#action-hook)
 - [Shortcodes](#shortcodes)
 
+### Special Thanks
+
+I would like to thank [BrowserStack](http://browserstack.com/?utm_source=github.com&utm_medium=referral&utm_content=link&utm_campaign=dmhendricks%2Fwordpress-mu-common-toolkit) for graciously allowing me to test my plugins on their platform:
+
+[![App and Browser Testing Made Easy](https://f001.backblazeb2.com/file/hendricks/images/github/brands/browserstack/browserstack-logo-350x98.png)](http://browserstack.com/?utm_source=github.com&utm_medium=referral&utm_content=logo&utm_campaign=dmhendricks%2Fdetect-remote-device)
+
 ## Installation
 
 Simply copy the `common-toolkit.php` file to your `wp-content/mu-plugins` directory (create one if it does not exist).
@@ -55,7 +61,7 @@ All variables are optional.
 This is the preferred method if you wish to avoid having a complex array in your `wp-config.php`:
 
 ```php
-// Load configuration from a file in webroot. 
+// Load configuration from a file in webroot.
 define( 'CTK_CONFIG', 'sample-config.json' );
 
 // Load configuration from a file off of the parent directory of webroot
