@@ -111,8 +111,11 @@ class CommonToolkit {
 
             // Disable site health notifications, widgets and menu
             if( self::get_config( 'common_toolkit/disable_site_health' ) ) {
-                add_action( 'wp_dashboard_setup', array( self::$instance, 'remove_site_health_dashboard_widget' ) );
-                add_action( 'admin_menu', array( self::$instance, 'remove_site_health_submenu' ) );
+                if( is_admin() ) {
+                    add_action( 'wp_dashboard_setup', array( self::$instance, 'remove_site_health_dashboard_widget' ) );
+                    add_action( 'admin_menu', array( self::$instance, 'remove_site_health_submenu' ) );
+                    add_action( 'current_screen', array( self::$instance, 'block_site_health_page' ) );
+                }
                 add_filter( 'wp_fatal_error_handler_enabled', '__return_false' ); // Disable Site Health e-mail notifications
             }
 
@@ -333,6 +336,22 @@ class CommonToolkit {
     public static function remove_site_health_submenu() {
 
         remove_submenu_page( 'tools.php', 'site-health.php' );
+
+    }
+
+    /**
+     * Block site health page
+     *
+     * @since 1.0.0
+     */
+    public static function block_site_health_page() {
+
+        $screen = get_current_screen();
+
+        if( $screen->id == 'site-health' ) {
+            http_response_code( 403 );
+            die( 'Access to this page is forbidden.' );
+        }
 
     }
 
