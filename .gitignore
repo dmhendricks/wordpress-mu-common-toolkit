@@ -1,7 +1,7 @@
-.DS_Store
+**.DS_Store*
 __MACOSX
-Thumbs.db
+._*
+*.un~
 *.bak
-*.log
 *.swp
 *~
