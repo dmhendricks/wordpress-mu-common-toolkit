@@ -3,16 +3,16 @@
  * Plugin Name:     Common Toolkit
  * Plugin URI:      https://github.com/dmhendricks/wordpress-mu-common-toolkit/
  * Description:     A must use (MU) plugin for WordPress that contains helper functions and snippets.
- * Version:         0.9.0
+ * Version:         1.0.0
  * Author:          Daniel M. Hendricks
- * Author URI:      https://www.danhendricks.com/
+ * Author URI:      https://daniel.hn/
  */
 namespace MU_Plugins;
 
 class CommonToolkit {
 
     private static $instance;
-    private static $version = '0.9.0';
+    private static $version = '1.0.0';
     private static $cache = [ 'key' => 'config_registry', 'group' => 'common_toolkit' ];
     protected static $config = [];
     protected static $environment = [];
@@ -44,7 +44,9 @@ class CommonToolkit {
                 'environment_production' => 'production',
                 'admin_bar_color' => null,
                 'disable_emojis' => false,
+                'disable_php_update_nag' => false,
                 'disable_search' => false,
+                'disable_site_health' => false,
                 'disable_updates' => false,
                 'disable_xmlrpc' => false,
                 'feed_links' => true,
@@ -96,10 +98,22 @@ class CommonToolkit {
             // Disable emoji support
             if( self::get_config( 'common_toolkit/disable_emojis' ) ) add_action( 'init', array( self::$instance, 'disable_emojis' ) );
 
+            // Remove "PHP Update Required" dashboard widget
+            if( self::get_config( 'common_toolkit/disable_php_update_nag' ) ) {
+                add_action( 'wp_dashboard_setup', array( self::$instance, 'remove_php_upgrade_notice' ) );
+            }
+
             // Disable search
             if( self::get_config( 'common_toolkit/disable_search' ) ) {
                 add_action( 'parse_query', array( self::$instance, 'disable_search' ) );
                 add_action( 'get_search_form', '__return_null' );
+            }
+
+            // Disable site health notifications, widgets and menu
+            if( self::get_config( 'common_toolkit/disable_site_health' ) ) {
+                add_action( 'wp_dashboard_setup', array( self::$instance, 'remove_site_health_dashboard_widget' ) );
+                add_action( 'admin_menu', array( self::$instance, 'remove_site_health_submenu' ) );
+                add_filter( 'wp_fatal_error_handler_enabled', '__return_false' ); // Disable Site Health e-mail notifications
             }
 
             // Change admin bar color
@@ -170,7 +184,7 @@ class CommonToolkit {
     /**
      * Get configuration variable.
      *    Example usage: echo apply_filter( 'ctk_config', 'common_toolkit/meta_generator' );
-     * 
+     *
      * @param string $key Configuration variable path to retrieve
      * @param mixed $default The default value to return if $key is not found
      * @since 0.8.0
@@ -237,7 +251,7 @@ class CommonToolkit {
     /**
      * Remove Emoji code in page header.
      *    Usage: define( 'CTK_CONFIG', [ 'disable_emojis' => true ] );
-     * 
+     *
      * @since 0.8.0
      */
     public static function disable_emojis() {
@@ -257,9 +271,21 @@ class CommonToolkit {
     }
 
     /**
+     * Remove the "PHP Update Required" dashboard widget
+     *
+     * @since 1.0.0
+     * @see https://wordpress.org/news/2019/04/minimum-php-version-update/
+     */
+    public static function remove_php_upgrade_notice() {
+
+        remove_meta_box( 'dashboard_php_nag', 'dashboard', 'normal' );
+
+    }
+
+    /**
      * Remove WordPress core, plugin and/or theme update notices
      *    Usage: define( 'CTK_CONFIG', [ 'disable_updates' => [ 'core', 'plugin', 'theme' ] ] );
-     * 
+     *
      * @since 0.9.0
      */
     public static function disable_updates() {
@@ -271,7 +297,7 @@ class CommonToolkit {
 
     /**
      * Disables WordPress site search and return 404
-     * 
+     *
      * @since 0.9.0
      */
     public static function disable_search( $query, $error = true ) {
@@ -289,9 +315,31 @@ class CommonToolkit {
     }
 
     /**
+     * Remove Site Health Dashboard Widget
+     *
+     * @since 1.0.0
+     */
+    public static function remove_site_health_dashboard_widget() {
+
+        remove_meta_box( 'dashboard_site_health', 'dashboard', 'normal' );
+
+    }
+
+    /**
+     * Remove Site Health Sub-menu
+     *
+     * @since 1.0.0
+     */
+    public static function remove_site_health_submenu() {
+
+        remove_submenu_page( 'tools.php', 'site-health.php' );
+
+    }
+
+    /**
      * Set a different admin bar color color. Useful for differentiating among environnments.
      *    Usage: define( 'CTK_CONFIG', [ 'admin_bar_color' => '#336699' ] );
-     * 
+     *
      * @since 0.8.0
      */
     public static function change_admin_bar_color() {
@@ -305,7 +353,7 @@ class CommonToolkit {
      *    Usage: wp_enqueue_script( 'script-handle-async-example', get_template_directory_uri() . '/assets/js/script.js#async' );
      *           wp_enqueue_script( 'script-handle-defer-example', get_template_directory_uri() . '/assets/js/script.js#defer' );
      *           wp_enqueue_script( 'script-custom-attributes', get_template_directory_uri() . '/assets/js/script.js?custom_attribute[]=custom-element|amp-ad' );
-     * 
+     *
      * @since 0.8.0
      * @see http://php.net/manual/en/domdocument.loadhtml.php
      * @see http://php.net/manual/en/domelement.setattribute.php
@@ -360,7 +408,7 @@ class CommonToolkit {
      * Build URL from array created with parse_url()
      *    Usage: $parse_uri = parse_url( 'https://example.com/?hello=world#hash );
      *           $uri = \MU_Plugins\CommonToolkit::build_url( $parse_uri );
-     * 
+     *
      * @since 0.8.0
      * @see https://stackoverflow.com/a/35207936
      */
@@ -562,7 +610,7 @@ class CommonToolkit {
 
     /**
      * Flush the config registry cache
-     * 
+     *
      * @since 0.8.0
      */
     public static function delete_config_cache() {
