@@ -1,5 +1,10 @@
 # Changelog
 
+### 1.0.0
+
+- Added: Option to disable PHP Update Notice dashboard widget
+- Added: Option to disable Site Health
+
 ### 0.9.0
 
 - Fixed: Firing sequence of `common_toolkit_loaded` hook
