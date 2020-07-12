@@ -4,6 +4,7 @@
 
 - Added: Option to disable PHP Update Notice dashboard widget
 - Added: Option to disable Site Health
+- Added: Support for script preload attribute
 
 ### 0.9.0
 

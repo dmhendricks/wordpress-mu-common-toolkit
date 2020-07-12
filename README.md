@@ -153,17 +153,23 @@ If not defined, "production" is returned.
 Examples:
 
 ```php
-wp_enqueue_script( 'script-async-example', get_template_directory_uri() . '/assets/js/script.js#async' );
+wp_enqueue_script( 'script-async-with-preload-example', get_template_directory_uri() . '/assets/js/script.js#async,preload' );
 wp_enqueue_script( 'script-defer-example', get_template_directory_uri() . '/assets/js/script.js#defer' );
 wp_enqueue_script( 'script-custom-attributes', 'https://cdn.ampproject.org/v0/amp-audio-0.1.js?custom_attribute[]=custom-element|amp-audio#async' );
+
+wp_enqueue_style( 'stylesheet-with-preload', get_template_directory_uri() . '/assets/css/style.css#preload' );
 ```
 
 Result:
 
 ```html
+<link href="https://example.com/wp-content/themes/my-theme/assets/js/script.js?ver=5.0.0" rel="preload" as="script" />
 <script async src="https://example.com/wp-content/themes/my-theme/assets/js/script.js?ver=5.0.0"></script>
 <script defer src="https://example.com/wp-content/themes/my-theme/assets/js/script.js?ver=5.0.0"></script>
 <script async custom-element="amp-audio" src="https://cdn.ampproject.org/v0/amp-audio-0.1.js?ver=5.0.0"></script>
+
+<link href="https://example.com/wp-content/themes/my-theme/assets/css/style.css?ver=5.0.0" rel="preload" as="style" />
+<link rel="stylesheet" id="stylesheet-with-preload-css" href="https://example.com/wp-content/themes/my-theme/assets/css/style.css?ver=5.0.0" type="text/css" />
 ```
 
 ### Change Admin Bar Color

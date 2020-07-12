@@ -155,6 +155,7 @@ class CommonToolkit {
             // Defer/Async Scripts
             if( self::get_config( 'common_toolkit/script_attributes' ) ) {
                 add_filter( 'script_loader_tag', array( self::$instance, 'defer_async_scripts' ), 10, 3 );
+                add_filter( 'style_loader_tag', array( self::$instance, 'preload_stylesheets' ), 10, 4 );
             }
 
             // Hide login errors
@@ -371,6 +372,7 @@ class CommonToolkit {
      * Quick defer or async loading of scripts via wp_enqueue_script(). Supports other custom attributes.
      *    Usage: wp_enqueue_script( 'script-handle-async-example', get_template_directory_uri() . '/assets/js/script.js#async' );
      *           wp_enqueue_script( 'script-handle-defer-example', get_template_directory_uri() . '/assets/js/script.js#defer' );
+     *           wp_enqueue_script( 'script-handle-defer-example', get_template_directory_uri() . '/assets/js/script.js#async,preload' );
      *           wp_enqueue_script( 'script-custom-attributes', get_template_directory_uri() . '/assets/js/script.js?custom_attribute[]=custom-element|amp-ad' );
      *
      * @since 0.8.0
@@ -379,48 +381,79 @@ class CommonToolkit {
      */
     public static function defer_async_scripts( $tag, $handle, $src ) {
 
-        // Return if no modification needed
-        if( !strpos( $src, '#async' ) && !strpos( $src, '#defer' ) && !strpos( $src, 'custom_attribute' ) ) return $tag;
+        $allowed = [ 'async', 'defer', 'preload' ];
+        $parsed_url = parse_url( html_entity_decode( urldecode( $src ) ) );
+        $options = !empty( $parsed_url['fragment'] ) ? explode( ',', $parsed_url['fragment'] ) : null;
 
-        // Parse script src attribute
-        $uri = html_entity_decode( urldecode( $src ) );
-        $parsed_url = parse_url( $uri );
+        // Return if no modification needed
+        if( !strpos( $src, 'custom_attribute' ) && ( empty( $options[0] ) || empty( array_intersect( $allowed, $options ) ) ) ) return $tag;
 
         // Create DOM element
         $dom = new \DomDocument();
         $dom->loadHTML( $tag );
-        $link = $dom->getElementsByTagName( 'script' );
+        $script = $dom->getElementsByTagName( 'script' );
 
-        // Verify element type
-        if( !$link instanceof \DOMNodeList || !$link->length ) return $tag;
+        // Validate element
+        if( !$script instanceof \DOMNodeList || !$script->length ) return $tag;
 
         // Remove extra DOM tags
         $dom = self::strip_extra_dom_elements( $dom );
 
         // Add async/defer attribute
-        if( isset( $parsed_url['fragment'] ) && $parsed_url['fragment'] == 'defer' || $parsed_url['fragment'] == 'async' ) {
-            $link->item(0)->setAttribute( $parsed_url['fragment'], $parsed_url['fragment'] );
+        if( !empty( $options[0] ) ) {
+            foreach( [ 'async', 'defer' ] as $attr ) {
+                if( in_array( $attr, $options ) ) $script->item(0)->setAttribute( $attr, $attr );
+            }
             unset( $parsed_url['fragment'] );
         }
 
         // Custom attributes
-        if( strpos( $parsed_url['query'], 'custom_attribute[' ) !== false ) {
+        if( !empty( $parsed_url['query'] ) && strpos( $parsed_url['query'], 'custom_attribute[' ) !== false ) {
             $query_parts = explode( '&', $parsed_url['query'] );
             $new_query = [];
             foreach( $query_parts as $pair ) {
                 if( strpos( $pair, 'custom_attribute[' ) === false ) $new_query[] = $pair;
                 $pair = explode( '|', substr( $pair, strpos( $pair, '=' )+1 ) );
-                if( sizeof( $pair ) > 1 ) $link->item(0)->setAttribute( $pair[0], $pair[1] );
+                if( sizeof( $pair ) > 1 ) $script->item(0)->setAttribute( $pair[0], $pair[1] );
             }
             $parsed_url['query'] = implode( '&', $new_query );
         }
 
         // Replace script src attribute
-        $link->item(0)->setAttribute( 'src', self::build_url( $parsed_url ) );
+        $src = self::build_url( $parsed_url );
+        $script->item(0)->setAttribute( 'src', $src );
+        $result = $dom->saveHTML();
+
+        // Add script preload
+        if( in_array( 'preload', $options ) ) {
+            $result = sprintf( '<link href="%s" rel="preload" as="script" />', $src ) . "\n" . $result;
+        }
 
         // Return new tag element
-        return $dom->saveHTML();
-        
+        return $result;
+
+    }
+
+    /**
+     * Quick defer or async loading of scripts via wp_enqueue_script(). Supports other custom attributes.
+     *    Usage: wp_enqueue_style( 'stylesheet-example', get_template_directory_uri() . '/assets/css/style.min.css#preload' );
+     *
+     * @since 1.0.0
+     * @see https://developer.wordpress.org/reference/hooks/style_loader_tag/
+     */
+    public static function preload_stylesheets( $tag, $handle, $src, $media ) {
+
+        // Return if preload fragment not set
+        if( !strpos( $src, '#preload' ) ) return $tag;
+        $parsed_url = parse_url( $src );
+
+        // Remove URI fragment
+        unset( $parsed_url['fragment'] );
+        $result = self::build_url( $parsed_url );
+
+        // Add stylesheet preload
+        return sprintf( '<link href="%s" rel="preload" as="style" />', $result ) . "\n" . str_replace( $src, $result, $tag );
+
     }
 
     /**
