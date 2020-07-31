@@ -82,10 +82,14 @@ class CommonToolkit {
             if( $disable_updates = self::get_config( 'common_toolkit/disable_updates' ) ) {
                 if( $disable_updates === true || in_array( 'core', (array) $disable_updates ) )
                     add_filter( 'pre_site_transient_update_core', array( self::$instance, 'disable_updates' ) );
-                if( $disable_updates === true || in_array( 'plugin', (array) $disable_updates ) )
+                if( $disable_updates === true || in_array( 'plugin', (array) $disable_updates ) ) {
                     add_filter( 'pre_site_transient_update_plugins', array( self::$instance, 'disable_updates' ) );
-                if( $disable_updates === true || in_array( 'theme', (array) $disable_updates ) )
+                    add_filter( 'plugins_auto_update_enabled', '__return_false' );
+                }
+                if( $disable_updates === true || in_array( 'theme', (array) $disable_updates ) ) {
                     add_filter( 'pre_site_transient_update_themes', array( self::$instance, 'disable_updates' ) );
+                    add_filter( 'themes_auto_update_enabled', '__return_false' );
+                }
             }
             
             // Modify or disable WordPress heartbeat
