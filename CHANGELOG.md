@@ -1,5 +1,16 @@
 # Changelog
 
+### 1.1.0
+
+- Fixed: Config JSON loading now safely checks file existence and readability before parsing; removed `@` error suppression
+- Fixed: `disable_updates()` now includes `updates` array to properly suppress update nag
+- Fixed: `delete_config_cache()` was using wrong cache key
+- Fixed: Removed manual `serialize`/`unserialize` around `wp_cache_get`/`wp_cache_set`
+- Fixed: `change_admin_bar_color()` had broken PHP syntax; now uses `get_config()` and `esc_attr()`
+- Fixed: `block_site_health()` now uses `wp_die()` instead of raw `http_response_code()`/`die()`
+- Fixed: `strip_extra_dom_elements()` declared as instance method but called statically; changed to `static`
+- Changed: `admin_bar_howdy` filter priority changed from 25 to 9992
+
 ### 1.0.0
 
 - Added: Option to disable PHP Update Notice dashboard widget

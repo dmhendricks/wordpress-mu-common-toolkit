@@ -3,7 +3,7 @@
  * Plugin Name:     Common Toolkit
  * Plugin URI:      https://github.com/dmhendricks/wordpress-mu-common-toolkit/
  * Description:     A must use (MU) plugin for WordPress that contains helper functions and snippets.
- * Version:         1.0.0
+ * Version:         1.1.0
  * Author:          Daniel M. Hendricks
  * Author URI:      https://daniel.hn/
  */
@@ -12,11 +12,11 @@ namespace MU_Plugins;
 class CommonToolkit {
 
     private static $instance;
-    private static $version = '1.0.0';
+    private static $version = '1.1.0';
     private static $cache = [ 'key' => 'config_registry', 'group' => 'common_toolkit' ];
     protected static $config = [];
     protected static $environment = [];
-    
+
     final public static function init() {
 
         if ( !isset( self::$instance ) && !( self::$instance instanceof CommonToolkit ) ) {
@@ -32,7 +32,8 @@ class CommonToolkit {
                     self::$config['common_toolkit'] = CTK_CONFIG;
                 } else if( is_string( CTK_CONFIG ) ) {
                     self::$config = self::get_cache_object( self::$cache[ 'key' ], function() {
-                        return @json_decode( file_get_contents( realpath( ABSPATH . CTK_CONFIG ) ), true ) ?: [];
+                        $config_path = realpath( ABSPATH . CTK_CONFIG );
+                        return ( $config_path && is_readable( $config_path ) ) ? json_decode( file_get_contents( $config_path ), true ) ?: [] : [];
                     });
                 }
             }
@@ -91,7 +92,7 @@ class CommonToolkit {
                     add_filter( 'themes_auto_update_enabled', '__return_false' );
                 }
             }
-            
+
             // Modify or disable WordPress heartbeat
             if( self::get_config( 'common_toolkit/heartbeat' ) === false ) { // Disable heartbeat
                 add_action( 'init', function() { wp_deregister_script( 'heartbeat' ); }, 1 );
@@ -169,7 +170,7 @@ class CommonToolkit {
 
             // Change or remove Howdy message in admin bar
             if( self::get_config( 'common_toolkit/howdy_message' ) !== true ) {
-                add_filter( 'admin_bar_menu', array( self::$instance, 'admin_bar_howdy' ), 25 );
+                add_filter( 'admin_bar_menu', array( self::$instance, 'admin_bar_howdy' ), 9992 );
             }
 
             // Add filter to retrieve configuration values
@@ -182,7 +183,7 @@ class CommonToolkit {
             add_action( 'init', function() {
                 do_action( 'common_toolkit_loaded' );
             });
-            
+
         }
 
         return self::$instance;
@@ -234,7 +235,7 @@ class CommonToolkit {
             default:
                 return null;
         }
-        
+
     }
 
     /**
@@ -253,7 +254,7 @@ class CommonToolkit {
         }
 
         return null;
-        
+
     }
 
     /**
@@ -299,8 +300,8 @@ class CommonToolkit {
     public static function disable_updates() {
 
         global $wp_version;
-        return (object) array( 'last_checked' => time(), 'version_checked' => $wp_version );
-    
+        return (object) array( 'last_checked' => time(), 'version_checked' => $wp_version, 'updates' => array() );
+
     }
 
     /**
@@ -315,7 +316,7 @@ class CommonToolkit {
             $query->is_search = false;
             $query->query_vars['s'] = false;
             $query->query['s'] = false;
-            
+
             if ( $error == true ) $query->is_404 = true;
 
         }
@@ -354,8 +355,7 @@ class CommonToolkit {
         $screen = get_current_screen();
 
         if( $screen->id == 'site-health' ) {
-            http_response_code( 403 );
-            die( 'Access to this page is forbidden.' );
+            wp_die( 'Access to this page is forbidden.', '', [ 'response' => 403 ] );
         }
 
     }
@@ -368,7 +368,7 @@ class CommonToolkit {
      */
     public static function change_admin_bar_color() {
 
-        printf( '<style type="text/css">#wpadminbar { background: %s; ?> !important; }</style>', CTK_CONFIG['admin_bar_color'] );
+        printf( '<style type="text/css">#wpadminbar { background: %s !important; }</style>', esc_attr( self::get_config( 'common_toolkit/admin_bar_color' ) ) );
 
     }
 
@@ -470,22 +470,22 @@ class CommonToolkit {
      */
     public static function build_url( array $parts ) {
 
-        return ( isset( $parts['scheme'] ) ? "{$parts['scheme']}:" : '' ) . 
-            ( ( isset( $parts['user'] ) || isset( $parts['host'] ) ) ? '//' : '' ) . 
-            ( isset( $parts['user'] ) ? "{$parts['user']}" : '' ) . 
-            ( isset($parts['pass'] ) ? ":{$parts['pass']}" : '' ) . 
-            ( isset( $parts['user'] ) ? '@' : '' ) . 
-            ( isset($parts['host']) ? "{$parts['host']}" : '' ) . 
-            ( isset($parts['port']) ? ":{$parts['port']}" : '' ) . 
-            ( isset($parts['path']) ? "{$parts['path']}" : '' ) . 
-            ( isset($parts['query']) ? "?{$parts['query']}" : '' ) . 
+        return ( isset( $parts['scheme'] ) ? "{$parts['scheme']}:" : '' ) .
+            ( ( isset( $parts['user'] ) || isset( $parts['host'] ) ) ? '//' : '' ) .
+            ( isset( $parts['user'] ) ? "{$parts['user']}" : '' ) .
+            ( isset($parts['pass'] ) ? ":{$parts['pass']}" : '' ) .
+            ( isset( $parts['user'] ) ? '@' : '' ) .
+            ( isset($parts['host']) ? "{$parts['host']}" : '' ) .
+            ( isset($parts['port']) ? ":{$parts['port']}" : '' ) .
+            ( isset($parts['path']) ? "{$parts['path']}" : '' ) .
+            ( isset($parts['query']) ? "?{$parts['query']}" : '' ) .
             ( isset($parts['fragment']) ? "#{$parts['fragment']}" : '' );
 
     }
 
     /**
      * Combines arrays and fill in defaults as needed. Example usage:
-     * 
+     *
      *    $person = [ 'name' => 'John', 'age' => 29 ];
      *    $human = \MU_Plugins\CommonToolkit::set_default_atts( [
      *       'name' => 'World',
@@ -570,6 +570,7 @@ class CommonToolkit {
     public static function admin_bar_howdy( $wp_admin_bar ) {
 
         $message = trim( self::get_config( 'common_toolkit/howdy_message' ) ) ?: '';
+        //if( !isset( $my_account->title ) ) return;
         $my_account = $wp_admin_bar->get_node( 'my-account' );
         $wp_admin_bar->add_node([
             'id' => 'my-account',
@@ -615,7 +616,7 @@ class CommonToolkit {
         $atts = shortcode_atts( [
             'format' => get_option( 'date_format' ) . ' ' . get_option( 'time_format' )
         ], $atts, 'get_datetime' );
-      
+
         return current_time( $atts['format'] );
     }
 
@@ -624,7 +625,7 @@ class CommonToolkit {
      *
      * @since 0.8.0
      */
-    private function strip_extra_dom_elements( $element ) {
+    private static function strip_extra_dom_elements( $element ) {
 
         $element->removeChild( $element->firstChild );
         $element->replaceChild( $element->firstChild->firstChild->firstChild, $element->firstChild );
@@ -647,12 +648,12 @@ class CommonToolkit {
         $cache_expire = defined( 'CTK_CACHE_EXPIRE' ) && is_int( CTK_CACHE_EXPIRE ) ? intval( CTK_CACHE_EXPIRE ) : false;
         if( !is_int( $cache_expire ) ) return $callback();
 
-        $result = unserialize( wp_cache_get( $key, self::$cache[ 'group' ], false, $cache_hit ) );
+        $result = wp_cache_get( $key, self::$cache[ 'group' ], false, $cache_hit );
 
         if( !$cache_hit ) {
 
             $result = $callback();
-            wp_cache_set( $key, serialize( $result ), self::$cache[ 'group' ], $cache_expire );
+            wp_cache_set( $key, $result, self::$cache[ 'group' ], $cache_expire );
 
         } else {
 
@@ -671,8 +672,8 @@ class CommonToolkit {
      */
     public static function delete_config_cache() {
 
-        wp_cache_delete( self::$cache[ 'group' ], self::$cache[ 'group' ] );
-        
+        wp_cache_delete( self::$cache[ 'key' ], self::$cache[ 'group' ] );
+
     }
 
     /**
