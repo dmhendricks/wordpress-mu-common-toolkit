@@ -31,10 +31,13 @@ class CommonToolkit {
                 if( is_array( CTK_CONFIG ) ) {
                     self::$config['common_toolkit'] = CTK_CONFIG;
                 } else if( is_string( CTK_CONFIG ) ) {
-                    self::$config = self::get_cache_object( self::$cache[ 'key' ], function() {
+                    $json = self::get_cache_object( self::$cache[ 'key' ], function() {
                         $config_path = realpath( ABSPATH . CTK_CONFIG );
                         return ( $config_path && is_readable( $config_path ) ) ? json_decode( file_get_contents( $config_path ), true ) ?: [] : [];
                     });
+
+                    self::$config = is_array( $json ) ? $json : [];
+                    if( !isset( self::$config['common_toolkit'] ) ) self::$config['common_toolkit'] = [];
                 }
             }
 
